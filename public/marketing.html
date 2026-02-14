@@ -17,12 +17,12 @@
   --surface-up: #151515;
   --surface-glass: rgba(15,15,15,0.6);
   --border: rgba(255,255,255,0.05);
-  --border-warm: rgba(249,115,22,0.12);
-  --accent: #F97316;
-  --accent-soft: #FB923C;
-  --accent-warm: #FBBF24;
-  --accent-glow: rgba(249,115,22,0.35);
-  --accent-dim: rgba(249,115,22,0.08);
+  --border-warm: rgba(20,184,166,0.12);
+  --accent: #14b8a6;
+  --accent-soft: #2dd4bf;
+  --accent-warm: #d6b36a;
+  --accent-glow: rgba(20,184,166,0.35);
+  --accent-dim: rgba(20,184,166,0.08);
   --text: #FAF9F6;
   --text-secondary: #B8B2A8;
   --text-muted: #807A72;
@@ -58,8 +58,8 @@ body {
 
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: var(--void); }
-::-webkit-scrollbar-thumb { background: rgba(249,115,22,0.2); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(249,115,22,0.4); }
+::-webkit-scrollbar-thumb { background: rgba(20,184,166,0.2); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(20,184,166,0.4); }
 
 /* ─── NOISE TEXTURE OVERLAY ─── */
 body::before {
@@ -108,7 +108,7 @@ body::before {
 
 .orb-3 {
   width: 400px; height: 400px;
-  background: radial-gradient(circle, #E86C00 0%, transparent 70%);
+  background: radial-gradient(circle, #0f5d5c 0%, transparent 70%);
   bottom: -5%; left: 30%;
   animation-duration: 22s;
   animation-delay: -5s;
@@ -423,7 +423,7 @@ section { position: relative; z-index: 2; }
 
 .hero-cta:hover {
   transform: translateY(-3px);
-  box-shadow: 0 16px 48px var(--accent-glow), 0 0 120px rgba(249,115,22,0.1);
+  box-shadow: 0 16px 48px var(--accent-glow), 0 0 120px rgba(20,184,166,0.1);
 }
 
 .hero-cta:hover::before { left: 100%; }
@@ -582,7 +582,7 @@ section { position: relative; z-index: 2; }
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(249,115,22,0.03), transparent);
+  background: linear-gradient(135deg, rgba(20,184,166,0.03), transparent);
   opacity: 0;
   transition: opacity 0.5s ease;
 }
@@ -741,7 +741,7 @@ section { position: relative; z-index: 2; }
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at top right, rgba(249,115,22,0.04), transparent 60%);
+  background: radial-gradient(ellipse at top right, rgba(20,184,166,0.04), transparent 60%);
   opacity: 0;
   transition: opacity 0.5s ease;
 }
@@ -749,7 +749,7 @@ section { position: relative; z-index: 2; }
 .service-card:hover {
   border-color: var(--border-warm);
   transform: translateY(-6px);
-  box-shadow: 0 24px 64px rgba(0,0,0,0.4), 0 0 80px rgba(249,115,22,0.04);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.4), 0 0 80px rgba(20,184,166,0.04);
 }
 
 .service-card:hover::after { transform: scaleX(1); }
@@ -772,7 +772,7 @@ section { position: relative; z-index: 2; }
   margin-bottom: 1.5rem;
   color: var(--accent);
   background: var(--accent-dim);
-  border: 1px solid rgba(249,115,22,0.1);
+  border: 1px solid rgba(20,184,166,0.1);
 }
 
 .service-icon svg {
@@ -807,7 +807,7 @@ section { position: relative; z-index: 2; }
   color: var(--accent);
   padding: 0.55rem 1.1rem;
   background: var(--accent-dim);
-  border: 1px solid rgba(249,115,22,0.15);
+  border: 1px solid rgba(20,184,166,0.15);
 }
 
 .service-agents {
@@ -822,14 +822,14 @@ section { position: relative; z-index: 2; }
   align-items: center;
   gap: 1rem;
   padding: 0.9rem 1.25rem;
-  background: rgba(249,115,22,0.04);
-  border: 1px solid rgba(249,115,22,0.08);
+  background: rgba(20,184,166,0.04);
+  border: 1px solid rgba(20,184,166,0.08);
   transition: all 0.4s var(--ease-out-expo);
 }
 
 .agent-pill:hover {
-  background: rgba(249,115,22,0.08);
-  border-color: rgba(249,115,22,0.18);
+  background: rgba(20,184,166,0.08);
+  border-color: rgba(20,184,166,0.18);
   transform: translateX(4px);
 }
 
@@ -922,7 +922,7 @@ section { position: relative; z-index: 2; }
   width: 48px; height: 48px;
   margin: 0 auto 1.5rem;
   background: var(--accent-dim);
-  border: 1px solid rgba(249,115,22,0.1);
+  border: 1px solid rgba(20,184,166,0.1);
   color: var(--accent);
 }
 
@@ -943,14 +943,70 @@ section { position: relative; z-index: 2; }
   line-height: 1.65;
 }
 
-/* ─── CONTACT ─── */
+/* ─── CONTACT / BOOKING ─── */
 .contact {
   padding: 10rem 0 6rem;
 }
 
 .contact-inner {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.booking-embed {
+  background: var(--surface-up);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 3rem;
+  position: relative;
+}
+
+.booking-embed iframe {
+  display: block;
+  width: 100%;
+  height: 720px;
+  border: none;
+}
+
+.message-toggle {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.message-toggle-btn {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: none;
+  border: 1px solid var(--border);
+  padding: 0.7rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.4s var(--ease-out-expo);
+}
+
+.message-toggle-btn:hover {
+  color: var(--text);
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.message-form-wrapper {
   max-width: 640px;
   margin: 0 auto;
+  overflow: hidden;
+  max-height: 0;
+  opacity: 0;
+  transition: max-height 0.6s var(--ease-out-expo), opacity 0.4s ease, margin 0.4s ease;
+}
+
+.message-form-wrapper.open {
+  max-height: 800px;
+  opacity: 1;
+  margin-top: 2rem;
 }
 
 .contact-header {
@@ -1059,7 +1115,7 @@ section { position: relative; z-index: 2; }
 .form-group select:focus,
 .form-group textarea:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-dim), 0 0 24px rgba(249,115,22,0.06);
+  box-shadow: 0 0 0 3px var(--accent-dim), 0 0 24px rgba(20,184,166,0.06);
   background: rgba(15,15,15,0.9);
 }
 
@@ -1096,7 +1152,7 @@ section { position: relative; z-index: 2; }
 
 .form-submit:hover {
   transform: translateY(-2px);
-  box-shadow: 0 16px 48px var(--accent-glow), 0 0 100px rgba(249,115,22,0.1);
+  box-shadow: 0 16px 48px var(--accent-glow), 0 0 100px rgba(20,184,166,0.1);
 }
 
 .form-submit:hover::before { left: 100%; }
@@ -1126,8 +1182,8 @@ section { position: relative; z-index: 2; }
 .form-status.visible { display: block; }
 
 .form-status.success {
-  border-color: rgba(249,115,22,0.2);
-  background: rgba(249,115,22,0.04);
+  border-color: rgba(20,184,166,0.2);
+  background: rgba(20,184,166,0.04);
 }
 
 .form-status.error {
@@ -1279,6 +1335,8 @@ footer {
   .orb-1 { width: 300px; height: 300px; }
   .orb-2 { width: 250px; height: 250px; }
   .orb-3 { width: 200px; height: 200px; }
+
+  .booking-embed iframe { height: 900px; }
 }
 
 @media (max-width: 480px) {
@@ -1537,76 +1595,88 @@ footer {
   </div>
 </section>
 
-<!-- ═══ CONTACT ═══ -->
+<!-- ═══ BOOK A CALL ═══ -->
 <div class="section-divider"></div>
 <section class="contact" id="contact">
   <div class="container">
     <div class="contact-inner reveal">
       <div class="contact-header">
         <p class="section-label">Get Started</p>
-        <h2 class="contact-title">Let's <span>Talk</span></h2>
-        <p class="contact-subtitle">Ready to automate the repetitive and focus on what matters? Book your free 30-minute consultation.</p>
+        <h2 class="contact-title">Book a <span>Call</span></h2>
+        <p class="contact-subtitle">Pick a time that works for you. We'll chat for 30 minutes about your business, identify automation opportunities, and map out next steps.</p>
       </div>
 
-      <form class="contact-form" id="contact-form">
-        <div class="form-row">
-          <div class="form-group">
-            <label for="full_name">Full Name *</label>
-            <input type="text" id="full_name" name="full_name" placeholder="Jane Smith" required>
-          </div>
-          <div class="form-group">
-            <label for="company">Company Name</label>
-            <input type="text" id="company" name="company" placeholder="Acme Corp">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="email">Email *</label>
-            <input type="email" id="email" name="email" placeholder="jane@acme.com" required>
-          </div>
-          <div class="form-group">
-            <label for="phone">Phone</label>
-            <input type="tel" id="phone" name="phone" placeholder="+1 (555) 000-0000">
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="interest">What are you interested in?</label>
-          <select id="interest" name="interest">
-            <option value="" disabled selected>Select a service</option>
-            <option value="Lead Capture & Management">Lead Capture & Management</option>
-            <option value="AI Content Creation">AI Content Creation</option>
-            <option value="Business Operations Automation">Business Operations Automation</option>
-            <option value="Voice-Powered Data Entry">Voice-Powered Data Entry</option>
-            <option value="Smart Contact Network">Smart Contact Network</option>
-            <option value="AI Chatbots">AI Chatbots</option>
-            <option value="Other / Not Sure">Other / Not Sure</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="message">Tell us about your business</label>
-          <textarea id="message" name="message" placeholder="What repetitive tasks are eating up your time? What would you automate first?"></textarea>
-        </div>
-        <button type="submit" class="form-submit" id="form-submit">
-          Book Free Consultation
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      <div class="booking-embed">
+        <iframe src="https://tidycal.com/neilbajaj1102/30-minute-meeting" title="Book a 30-minute consultation"></iframe>
+      </div>
+
+      <div class="message-toggle">
+        <button class="message-toggle-btn" id="message-toggle-btn">
+          Prefer to send a message instead?
         </button>
-      </form>
-
-      <div class="form-status" id="form-success">
-        <span class="form-status-icon">&#10003;</span>
-        <div class="form-status-title">We've got your details!</div>
-        <div class="form-status-text">Our team will reach out within 24 hours to schedule your free consultation.</div>
       </div>
 
-      <div class="form-status" id="form-error">
-        <span class="form-status-icon">&#10007;</span>
-        <div class="form-status-title">Something went wrong</div>
-        <div class="form-status-text">Please try again, or reach out directly at neilbajaj1102@gmail.com</div>
+      <div class="message-form-wrapper" id="message-form-wrapper">
+        <form class="contact-form" id="contact-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="full_name">Full Name *</label>
+              <input type="text" id="full_name" name="full_name" placeholder="Jane Smith" required>
+            </div>
+            <div class="form-group">
+              <label for="email">Email *</label>
+              <input type="email" id="email" name="email" placeholder="jane@acme.com" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="company">Company Name</label>
+              <input type="text" id="company" name="company" placeholder="Acme Corp">
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone</label>
+              <input type="tel" id="phone" name="phone" placeholder="+1 (555) 000-0000">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="interest">What are you interested in?</label>
+            <select id="interest" name="interest">
+              <option value="" disabled selected>Select a service</option>
+              <option value="Lead Capture & Management">Lead Capture & Management</option>
+              <option value="AI Content Creation">AI Content Creation</option>
+              <option value="Business Operations Automation">Business Operations Automation</option>
+              <option value="Voice-Powered Data Entry">Voice-Powered Data Entry</option>
+              <option value="Smart Contact Network">Smart Contact Network</option>
+              <option value="AI Chatbots">AI Chatbots</option>
+              <option value="Other / Not Sure">Other / Not Sure</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="message">Tell us about your business</label>
+            <textarea id="message" name="message" placeholder="What repetitive tasks are eating up your time? What would you automate first?"></textarea>
+          </div>
+          <button type="submit" class="form-submit" id="form-submit">
+            Send Message
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </button>
+        </form>
+
+        <div class="form-status" id="form-success">
+          <span class="form-status-icon">&#10003;</span>
+          <div class="form-status-title">Message sent!</div>
+          <div class="form-status-text">We'll get back to you within 24 hours.</div>
+        </div>
+
+        <div class="form-status" id="form-error">
+          <span class="form-status-icon">&#10007;</span>
+          <div class="form-status-title">Something went wrong</div>
+          <div class="form-status-text">Please try again, or reach out directly at neilbajaj1102@gmail.com</div>
+        </div>
       </div>
 
       <div class="form-badge">
         <span class="form-badge-dot"></span>
-        Responses powered by AI automation
+        Free 30-minute consultation &mdash; no commitment
       </div>
     </div>
   </div>
@@ -1662,7 +1732,7 @@ function drawGrid() {
     const pulseVal = Math.sin(time * 0.4 + dot.pulse) * 0.3 + 0.7;
     const alpha = (dot.opacity * pulseVal + influence * 0.6) * 0.7;
 
-    const r = 249, g = 115, b = 22;
+    const r = 20, g = 184, b = 166;
     const wb = influence;
     const fr = Math.round(r + (255 - r) * wb);
     const fg = Math.round(g + (200 - g) * wb);
@@ -1689,7 +1759,7 @@ function drawGrid() {
             ctx.beginPath();
             ctx.moveTo(dot.x, dot.y);
             ctx.lineTo(other.x, other.y);
-            ctx.strokeStyle = `rgba(249,115,22,${lineAlpha})`;
+            ctx.strokeStyle = `rgba(20,184,166,${lineAlpha})`;
             ctx.lineWidth = 0.5;
             ctx.stroke();
           }
@@ -1755,6 +1825,12 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
       target.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   });
+});
+
+// ─── MESSAGE FORM TOGGLE ───
+document.getElementById('message-toggle-btn').addEventListener('click', () => {
+  const wrapper = document.getElementById('message-form-wrapper');
+  wrapper.classList.toggle('open');
 });
 
 // ─── CONTACT FORM ───
