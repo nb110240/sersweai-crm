@@ -150,7 +150,7 @@ export default function LeadTable({ token }: Props) {
         <button className="secondary" onClick={() => fetchLeads(search)}>
           Refresh
         </button>
-        <a href="/import" className="ghost" style={{ padding: '8px 12px', borderRadius: 10, border: '1px dashed var(--accent)' }}>
+        <a href="/crm/import" className="ghost" style={{ padding: '8px 12px', borderRadius: 10, border: '1px dashed var(--accent)' }}>
           Import CSV
         </a>
       </div>
