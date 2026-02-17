@@ -41,6 +41,7 @@ export default function LeadTable({ token }: Props) {
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [notice, setNotice] = useState('');
+  const [sendingLeads, setSendingLeads] = useState<Record<string, string>>({});
   const fetchIdRef = useRef(0);
 
   const statusCounts = useMemo(() => {
@@ -138,6 +139,52 @@ export default function LeadTable({ token }: Props) {
     return new Date().toISOString().slice(0, 10);
   }
 
+  async function sendEmail(leadId: string, template: string) {
+    const key = `${leadId}:${template}`;
+    setSendingLeads((prev) => ({ ...prev, [key]: template }));
+    setNotice('');
+    try {
+      const res = await fetch('/api/send', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ lead_id: leadId, template })
+      });
+      if (res.status === 429) {
+        setNotice('Daily send limit reached. Try again tomorrow.');
+        return;
+      }
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setNotice(data.error || 'Failed to send email');
+        return;
+      }
+      const statusMap: Record<string, string> = {
+        email1: 'Email 1 Sent',
+        email2: 'Email 2 Sent',
+        email3: 'Email 3 Sent'
+      };
+      setLeads((prev) =>
+        prev.map((lead) =>
+          lead.id === leadId
+            ? { ...lead, status: statusMap[template] || lead.status, last_contacted: todayISO() }
+            : lead
+        )
+      );
+      setNotice(`Email sent successfully!`);
+    } catch {
+      setNotice('Network error — could not send email');
+    } finally {
+      setSendingLeads((prev) => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+    }
+  }
+
   return (
     <div>
       <div className="toolbar">
@@ -200,9 +247,6 @@ export default function LeadTable({ token }: Props) {
         {search ? ` for "${search}"` : ''}
       </p>
 
-      <div className="notice">
-        Email sending is paused until your sending domain is verified. Use the status buttons to track manual sends.
-      </div>
       {notice ? <div className="notice">{notice}</div> : null}
       {error ? <div className="notice">{error}</div> : null}
 
@@ -275,22 +319,25 @@ export default function LeadTable({ token }: Props) {
                   <td>
                     <div className="row-actions">
                       <button
-                        onClick={() => updateLead(lead.id, { status: 'Email 1 Sent', last_contacted: todayISO() })}
+                        onClick={() => sendEmail(lead.id, 'email1')}
                         className="secondary"
+                        disabled={!lead.email || !!sendingLeads[`${lead.id}:email1`]}
                       >
-                        Mark Email 1
+                        {sendingLeads[`${lead.id}:email1`] ? 'Sending...' : 'Send Email 1'}
                       </button>
                       <button
-                        onClick={() => updateLead(lead.id, { status: 'Email 2 Sent', last_contacted: todayISO() })}
+                        onClick={() => sendEmail(lead.id, 'email2')}
                         className="secondary"
+                        disabled={!lead.email || !!sendingLeads[`${lead.id}:email2`]}
                       >
-                        Mark Email 2
+                        {sendingLeads[`${lead.id}:email2`] ? 'Sending...' : 'Send Email 2'}
                       </button>
                       <button
-                        onClick={() => updateLead(lead.id, { status: 'Email 3 Sent', last_contacted: todayISO() })}
+                        onClick={() => sendEmail(lead.id, 'email3')}
                         className="secondary"
+                        disabled={!lead.email || !!sendingLeads[`${lead.id}:email3`]}
                       >
-                        Mark Email 3
+                        {sendingLeads[`${lead.id}:email3`] ? 'Sending...' : 'Send Email 3'}
                       </button>
                       <button
                         className="ghost"

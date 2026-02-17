@@ -46,6 +46,40 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Missing RESEND_API_KEY env' }, { status: 400 });
   }
 
+  // --- Warm-up rate limiting ---
+  const todayMidnight = new Date();
+  todayMidnight.setUTCHours(0, 0, 0, 0);
+
+  const { count: todayCount } = await supabase
+    .from('emails')
+    .select('*', { count: 'exact', head: true })
+    .gte('sent_at', todayMidnight.toISOString());
+
+  const { data: firstEmail } = await supabase
+    .from('emails')
+    .select('sent_at')
+    .not('sent_at', 'is', null)
+    .order('sent_at', { ascending: true })
+    .limit(1)
+    .single();
+
+  let dailyLimit = 20;
+  if (firstEmail?.sent_at) {
+    const campaignDay = Math.floor(
+      (Date.now() - new Date(firstEmail.sent_at).getTime()) / 86_400_000
+    ) + 1;
+    if (campaignDay >= 6) dailyLimit = 40;
+    else if (campaignDay >= 3) dailyLimit = 30;
+  }
+
+  if ((todayCount ?? 0) >= dailyLimit) {
+    return NextResponse.json(
+      { error: `Daily send limit reached (${dailyLimit}/day)` },
+      { status: 429 }
+    );
+  }
+  // --- End rate limiting ---
+
   const resend = new Resend(resendApiKey);
 
   // Create email record first to get email_id
