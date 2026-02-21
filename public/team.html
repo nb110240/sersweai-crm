@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Team — SersweAI</title>
+<meta name="description" content="Meet the team behind SersweAI — building intelligent automation systems that work 24/7.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Plus+Jakarta+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #FAFAF7;
+  --surface: #FFFFFF;
+  --surface-alt: #F4F2ED;
+  --border: #E2DFD6;
+  --border-accent: rgba(15,93,92,0.15);
+  --accent: #0f5d5c;
+  --accent-hover: #1a7a79;
+  --accent-warm: #c6a356;
+  --accent-dim: rgba(15,93,92,0.05);
+  --text: #1A1A1E;
+  --text-2: #3D3D44;
+  --text-3: #6B6B74;
+  --text-4: #9E9EA6;
+  --serif: 'Cormorant', Georgia, serif;
+  --sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html {
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15,93,92,0.2) var(--bg);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-weight: 300;
+  line-height: 1.65;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: var(--accent);
+  color: #fff;
+}
+
+::-webkit-scrollbar { width: 5px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: rgba(15,93,92,0.2); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(15,93,92,0.35); }
+
+/* Noise texture */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.018;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px 256px;
+}
+
+/* --- NAV --- */
+nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 1.25rem 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.6s var(--ease);
+}
+
+nav.scrolled {
+  background: #FFFFFF;
+  border-bottom: 1px solid var(--border);
+  padding: 0.85rem 3rem;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.03);
+}
+
+.nav-brand {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 1.5rem;
+  color: var(--text);
+  text-decoration: none;
+  transition: opacity 0.3s ease;
+}
+
+.nav-brand:hover { opacity: 0.7; }
+.nav-brand span { color: var(--accent); }
+
+.nav-links {
+  display: flex;
+  gap: 2.5rem;
+  list-style: none;
+}
+
+.nav-links a {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 400;
+  color: var(--text-3);
+  text-decoration: none;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  position: relative;
+  padding: 0.4rem 0;
+  transition: color 0.4s ease;
+}
+
+.nav-links a::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 0; height: 1px;
+  background: var(--text);
+  transition: width 0.5s var(--ease);
+}
+
+.nav-links a:hover { color: var(--text); }
+.nav-links a:hover::after { width: 100%; }
+
+/* Active page */
+.nav-links a.active {
+  color: var(--accent);
+}
+.nav-links a.active::after {
+  width: 100%;
+  background: var(--accent);
+}
+
+.nav-cta {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  padding: 0.65rem 1.75rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.4s var(--ease);
+  border-radius: 4px;
+}
+
+.nav-cta:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  z-index: 101;
+}
+
+.hamburger span {
+  width: 22px; height: 1.5px;
+  background: var(--text);
+  transition: all 0.4s var(--ease);
+  transform-origin: center;
+}
+
+.hamburger.active span:nth-child(1) { transform: translateY(6.5px) rotate(45deg); }
+.hamburger.active span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.hamburger.active span:nth-child(3) { transform: translateY(-6.5px) rotate(-45deg); }
+
+/* --- MOBILE MENU --- */
+.mobile-menu {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(250,250,247,0.98);
+  z-index: 99;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s var(--ease);
+}
+
+.mobile-menu.active { opacity: 1; pointer-events: all; }
+
+.mobile-menu a {
+  font-family: var(--serif);
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--text-2);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.mobile-menu.active a {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.mobile-menu a:nth-child(1) { transition-delay: 0.1s; }
+.mobile-menu a:nth-child(2) { transition-delay: 0.15s; }
+.mobile-menu a:nth-child(3) { transition-delay: 0.2s; }
+.mobile-menu a:nth-child(4) { transition-delay: 0.25s; }
+.mobile-menu a:nth-child(5) { transition-delay: 0.3s; }
+
+.mobile-menu a:hover,
+.mobile-menu a.active { color: var(--accent); }
+
+/* --- LAYOUT --- */
+section { position: relative; z-index: 2; }
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 3rem;
+}
+
+.section-divider {
+  width: 100%;
+  height: 1px;
+  background: var(--border);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* --- PAGE HERO --- */
+.page-hero {
+  padding: 10rem 3rem 6rem;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+
+.page-hero-content { max-width: 680px; margin: 0 auto; }
+
+.page-eyebrow {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 400;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 2rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeUp 0.8s 0.2s forwards;
+}
+
+.page-eyebrow::before,
+.page-eyebrow::after {
+  content: '';
+  width: 40px; height: 1px;
+  background: var(--border);
+}
+
+.page-title {
+  font-family: var(--serif);
+  font-size: clamp(3.5rem, 8vw, 6rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--text);
+  margin-bottom: 0;
+  opacity: 0;
+  transform: translateY(40px);
+  animation: fadeUp 1s 0.4s forwards;
+}
+
+.page-rule {
+  width: 80px; height: 1px;
+  background: var(--border);
+  margin: 2rem auto;
+  opacity: 0;
+  animation: fadeUp 0.8s 0.55s forwards;
+}
+
+.page-tagline {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: var(--text-3);
+  line-height: 1.7;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeUp 0.8s 0.7s forwards;
+}
+
+/* --- TEAM SECTION --- */
+.team {
+  padding: 6rem 0 10rem;
+}
+
+.team-inner {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 0 3rem;
+}
+
+/* --- MEMBER CARD --- */
+.member-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--accent);
+  border-radius: 2px;
+  padding: 4rem 3.5rem;
+  position: relative;
+  transition: all 0.5s var(--ease);
+}
+
+.member-card:hover {
+  box-shadow: 0 20px 60px rgba(0,0,0,0.07);
+  transform: translateY(-4px);
+}
+
+/* Avatar */
+.member-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: var(--accent-dim);
+  border: 1px solid var(--border-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2.5rem;
+}
+
+.member-initials {
+  font-family: var(--serif);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.02em;
+}
+
+/* Name */
+.member-name {
+  font-family: var(--serif);
+  font-size: 2.4rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+}
+
+.member-title {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.member-title::before {
+  content: '';
+  display: inline-block;
+  width: 24px; height: 1px;
+  background: var(--accent-warm);
+  opacity: 0.6;
+}
+
+/* Divider */
+.member-divider {
+  width: 48px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-warm));
+  margin-bottom: 2rem;
+  border-radius: 2px;
+}
+
+/* Bio */
+.member-bio {
+  font-family: var(--sans);
+  font-size: 1rem;
+  font-weight: 300;
+  color: var(--text-2);
+  line-height: 1.8;
+  margin-bottom: 2.5rem;
+}
+
+/* Social links */
+.member-links {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.member-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  text-decoration: none;
+  padding: 0.65rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  background: transparent;
+  transition: all 0.4s var(--ease);
+}
+
+.member-link svg {
+  width: 13px; height: 13px;
+  flex-shrink: 0;
+  stroke-width: 1.5;
+}
+
+.member-link:hover {
+  color: var(--accent);
+  border-color: var(--border-accent);
+  background: var(--accent-dim);
+  transform: translateY(-1px);
+}
+
+/* Status badge */
+.member-status {
+  position: absolute;
+  top: 2.5rem;
+  right: 2.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-4);
+}
+
+.status-dot {
+  width: 6px; height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+  animation: agentPulse 2.5s ease-in-out infinite;
+}
+
+/* --- CTA SECTION --- */
+.team-cta {
+  padding: 8rem 0 6rem;
+}
+
+.team-cta-inner {
+  text-align: center;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 0 3rem;
+}
+
+.section-label {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  justify-content: center;
+}
+
+.cta-title {
+  font-family: var(--serif);
+  font-size: clamp(2.4rem, 5vw, 3.4rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--text);
+  margin-bottom: 1.25rem;
+}
+
+.cta-title span {
+  background: linear-gradient(135deg, var(--accent), var(--accent-warm));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.cta-desc {
+  font-family: var(--sans);
+  font-size: 1rem;
+  font-weight: 300;
+  color: var(--text-2);
+  line-height: 1.75;
+  margin-bottom: 2.5rem;
+}
+
+.cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  padding: 1rem 2.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.5s var(--ease);
+}
+
+.cta-btn:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(15,93,92,0.12);
+}
+
+.cta-btn svg {
+  width: 14px; height: 14px;
+  transition: transform 0.4s var(--ease);
+}
+
+.cta-btn:hover svg { transform: translateX(4px); }
+
+/* --- FOOTER --- */
+footer {
+  padding: 3rem;
+  text-align: center;
+  border-top: 1px solid var(--border);
+  position: relative;
+  z-index: 2;
+}
+
+.footer-text {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  color: var(--text-4);
+  letter-spacing: 0.08em;
+}
+
+.footer-text span { color: var(--accent); }
+
+/* --- ANIMATIONS --- */
+@keyframes fadeUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes agentPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+
+/* Reveal on scroll */
+.reveal {
+  opacity: 0;
+  transform: translateY(36px);
+  transition: opacity 0.9s var(--ease), transform 0.9s var(--ease);
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-delay-1 { transition-delay: 0.08s; }
+.reveal-delay-2 { transition-delay: 0.16s; }
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+  nav { padding: 1rem 1.5rem; }
+  nav.scrolled { padding: 0.75rem 1.5rem; }
+  .nav-links, .nav-cta { display: none; }
+  .hamburger { display: flex; }
+
+  .page-hero { padding: 8rem 1.5rem 4rem; }
+  .team-inner { padding: 0 1.5rem; }
+  .team-cta-inner { padding: 0 1.5rem; }
+  .member-card { padding: 2.5rem 2rem; }
+  .member-status { display: none; }
+  .container { padding: 0 1.5rem; }
+}
+
+@media (max-width: 480px) {
+  .page-title { font-size: 3rem; }
+  .member-name { font-size: 1.8rem; }
+  .member-links { flex-wrap: wrap; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ NAVIGATION ═══ -->
+<nav id="navbar">
+  <a href="/" class="nav-brand">Serswe<span>AI</span></a>
+  <ul class="nav-links">
+    <li><a href="/#problems">Problem</a></li>
+    <li><a href="/#services">Services</a></li>
+    <li><a href="/team.html" class="active">Team</a></li>
+    <li><a href="/#why">Why Us</a></li>
+    <li><a href="/#contact">Contact</a></li>
+  </ul>
+  <a href="/#contact" class="nav-cta">Book a Call</a>
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- ═══ MOBILE MENU ═══ -->
+<div class="mobile-menu" id="mobile-menu">
+  <a href="/#problems" onclick="closeMobile()">Problem</a>
+  <a href="/#services" onclick="closeMobile()">Services</a>
+  <a href="/team.html" class="active">Team</a>
+  <a href="/#why" onclick="closeMobile()">Why Us</a>
+  <a href="/#contact" onclick="closeMobile()">Contact</a>
+</div>
+
+<!-- ═══ PAGE HERO ═══ -->
+<section class="page-hero">
+  <div class="page-hero-content">
+    <p class="page-eyebrow">The Team</p>
+    <h1 class="page-title">Meet the Minds<br>Behind SersweAI</h1>
+    <div class="page-rule"></div>
+    <p class="page-tagline">Real people building intelligent systems that transform how businesses operate.</p>
+  </div>
+</section>
+
+<div class="section-divider"></div>
+
+<!-- ═══ TEAM SECTION ═══ -->
+<section class="team">
+  <div class="team-inner">
+    <div class="member-card reveal">
+
+      <div class="member-status">
+        <span class="status-dot"></span>
+        Active
+      </div>
+
+      <!-- Avatar -->
+      <div class="member-avatar">
+        <span class="member-initials">NB</span>
+      </div>
+
+      <!-- Name & Title -->
+      <h2 class="member-name">Neil Bajaj</h2>
+      <p class="member-title">Founder &amp; AI Operator</p>
+
+      <div class="member-divider"></div>
+
+      <!-- Bio -->
+      <p class="member-bio">
+        Neil is the founder and driving force behind SersweAI. With a passion for cutting through operational friction, he designs and deploys intelligent automation systems tailored to each business — from lead capture pipelines and AI content teams to voice-powered data entry and smart contact networks. His approach is simple: build systems that do the heavy lifting, so business owners can focus on what actually moves the needle.
+      </p>
+
+      <!-- Links -->
+      <div class="member-links">
+        <a href="mailto:sersweai2@gmail.com" class="member-link" aria-label="Email">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          Email
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CTA SECTION ═══ -->
+<div class="section-divider"></div>
+<section class="team-cta">
+  <div class="team-cta-inner reveal">
+    <p class="section-label">Get Started</p>
+    <h2 class="cta-title">Want to Work <span>Together?</span></h2>
+    <p class="cta-desc">Book a free 30-minute consultation and let's map out what we can automate for your business.</p>
+    <a href="/#contact" class="cta-btn">
+      Book Free Consultation
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+  </div>
+</section>
+
+<!-- ═══ FOOTER ═══ -->
+<footer>
+  <p class="footer-text">&copy; 2026 <span>SersweAI</span>. All rights reserved.</p>
+</footer>
+
+<script>
+// --- NAV SCROLL ---
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('scrolled', window.scrollY > 50);
+}, { passive: true });
+
+// --- MOBILE MENU ---
+const hamburger = document.getElementById('hamburger');
+const mobileMenu = document.getElementById('mobile-menu');
+
+hamburger.addEventListener('click', () => {
+  const isActive = mobileMenu.classList.contains('active');
+  if (isActive) {
+    closeMobile();
+  } else {
+    mobileMenu.style.display = 'flex';
+    hamburger.classList.add('active');
+    requestAnimationFrame(() => mobileMenu.classList.add('active'));
+  }
+});
+
+function closeMobile() {
+  mobileMenu.classList.remove('active');
+  hamburger.classList.remove('active');
+  setTimeout(() => { mobileMenu.style.display = 'none'; }, 500);
+}
+
+// --- SCROLL REVEAL ---
+const reveals = document.querySelectorAll('.reveal');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) entry.target.classList.add('visible');
+  });
+}, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+reveals.forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
