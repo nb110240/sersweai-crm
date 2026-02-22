@@ -129,11 +129,24 @@ export async function POST(req: NextRequest) {
     email3: 'Email 3 Sent'
   };
 
+  const followUpDays: Record<string, number | null> = {
+    email1: 3,
+    email2: 7,
+    email3: null
+  };
+
+  const today = new Date();
+  const daysOut = followUpDays[template];
+  const next_follow_up = daysOut !== null
+    ? new Date(today.getTime() + daysOut * 86_400_000).toISOString().slice(0, 10)
+    : null;
+
   await supabase
     .from('leads')
     .update({
       status: statusMap[template] || lead.status,
-      last_contacted: new Date().toISOString().slice(0, 10)
+      last_contacted: today.toISOString().slice(0, 10),
+      ...(template !== 'email3' ? { next_follow_up } : { next_follow_up: null })
     })
     .eq('id', lead.id);
 
