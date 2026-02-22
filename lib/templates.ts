@@ -8,6 +8,7 @@ export type Lead = {
   email: string | null;
   contact_form_url: string | null;
   summary: string | null;
+  notes: string | null;
 };
 
 export type TemplateKey = 'email1' | 'email2' | 'email3';
@@ -39,11 +40,12 @@ export function renderTemplate(lead: Lead, template: TemplateKey, baseUrl: strin
 
   if (template === 'email1') {
     const subject = `Quick idea for ${firm}`;
-    const text = `Hi ${firstName},\n\n${contextLine}.\n\nI'm Neil from SersweAI — we help ${category} firms save time by automating repetitive admin work (intake forms, document collection, client follow-ups, scheduling) using simple AI workflows.\n\nNo new software to learn — we build on top of the tools you already use.\n\nWould you be open to a free 30-minute call where I walk through 2–3 automations specific to ${firm}?\n\nYou can see what we do here: ${siteLink}${bookingLink ? `\n\nBook a time: ${bookingLink}` : ''}${footer}`;
+    const opener = lead.notes?.trim() || (contextLine + '.');
+    const text = `Hi ${firstName},\n\n${opener}\n\nI'm Neil from SersweAI — we help ${category} firms save time by automating repetitive admin work (intake forms, document collection, client follow-ups, scheduling) using simple AI workflows.\n\nNo new software to learn — we build on top of the tools you already use.\n\nWould you be open to a free 30-minute call where I walk through 2–3 automations specific to ${firm}?\n\nYou can see what we do here: ${siteLink}${bookingLink ? `\n\nBook a time: ${bookingLink}` : ''}${footer}`;
 
     const html = `
       <p>Hi ${firstName},</p>
-      <p>${contextLine}.</p>
+      <p>${opener}</p>
       <p>I'm Neil from SersweAI — we help ${category} firms save time by automating repetitive admin work (intake forms, document collection, client follow-ups, scheduling) using simple AI workflows.</p>
       <p>No new software to learn — we build on top of the tools you already use.</p>
       <p>Would you be open to a free 30-minute call where I walk through 2–3 automations specific to ${firm}?</p>

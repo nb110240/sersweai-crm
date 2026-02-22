@@ -106,7 +106,8 @@ export async function POST(req: NextRequest) {
     to: [lead.email],
     subject,
     text,
-    html
+    html,
+    scheduledAt: nextBusinessDay8AMPT()
   });
 
   if (sendError) {
@@ -150,5 +151,22 @@ export async function POST(req: NextRequest) {
     })
     .eq('id', lead.id);
 
-  return NextResponse.json({ ok: true, message_id: sendData?.id || null });
+  return NextResponse.json({ ok: true, message_id: sendData?.id || null, scheduledAt: nextBusinessDay8AMPT() });
+}
+
+function nextBusinessDay8AMPT(): string {
+  const next = new Date();
+  do {
+    next.setDate(next.getDate() + 1);
+  } while (['Saturday', 'Sunday'].includes(
+    next.toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'long' })
+  ));
+  const datePT = next.toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+  // Determine PST vs PDT offset
+  const month = next.getMonth() + 1;
+  const day = next.getDate();
+  const isDST = (month > 3 && month < 11) ||
+    (month === 3 && day >= 8) ||
+    (month === 11 && day < 7);
+  return `${datePT}T08:00:00${isDST ? '-07:00' : '-08:00'}`;
 }
