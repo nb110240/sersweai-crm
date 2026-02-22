@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
     text,
     html,
     scheduledAt: nextBusinessDay8AMPT()
-  });
+  } as any);
 
   if (sendError) {
     return NextResponse.json({ error: sendError.message }, { status: 500 });
