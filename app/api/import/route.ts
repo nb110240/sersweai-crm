@@ -4,7 +4,12 @@ import { getSupabase } from '../../../lib/supabase';
 import { requireAuth } from '../../../lib/auth';
 
 function normalizeRow(row: Record<string, string>) {
-  const emailOrUrl = (row.email_or_contact_url || '').trim();
+  // Support both import formats:
+  // 1) legacy: email_or_contact_url
+  // 2) explicit: email (plus optional contact_form_url)
+  const fallbackEmail = (row.email || '').trim();
+  const fallbackContactUrl = (row.contact_form_url || '').trim();
+  const emailOrUrl = (row.email_or_contact_url || fallbackEmail || fallbackContactUrl || '').trim();
   const isEmail = emailOrUrl.includes('@') && !emailOrUrl.startsWith('http');
 
   return {
@@ -29,13 +34,20 @@ export async function POST(req: NextRequest) {
   const auth = requireAuth(req);
   if (auth) return auth;
 
-  const form = await req.formData();
-  const file = form.get('file');
-  if (!file || !(file instanceof File)) {
-    return NextResponse.json({ error: 'Missing CSV file' }, { status: 400 });
+  let text: string;
+  const contentType = req.headers.get('content-type') || '';
+  if (contentType.includes('application/json')) {
+    const body = await req.json().catch(() => ({}));
+    if (!body.csv) return NextResponse.json({ error: 'Missing csv field' }, { status: 400 });
+    text = body.csv;
+  } else {
+    const form = await req.formData();
+    const file = form.get('file');
+    if (!file || !(file instanceof File)) {
+      return NextResponse.json({ error: 'Missing CSV file' }, { status: 400 });
+    }
+    text = await file.text();
   }
-
-  const text = await file.text();
   const records = parse(text, { columns: true, skip_empty_lines: true });
   const rows = records
     .map(normalizeRow)
