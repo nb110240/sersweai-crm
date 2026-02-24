@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Missing RESEND_API_KEY env' }, { status: 400 });
   }
 
-  // --- Warm-up rate limiting ---
+  // --- Daily rate limiting (20/day) ---
   const todayMidnight = new Date();
   todayMidnight.setUTCHours(0, 0, 0, 0);
 
@@ -55,26 +55,9 @@ export async function POST(req: NextRequest) {
     .select('*', { count: 'exact', head: true })
     .gte('sent_at', todayMidnight.toISOString());
 
-  const { data: firstEmail } = await supabase
-    .from('emails')
-    .select('sent_at')
-    .not('sent_at', 'is', null)
-    .order('sent_at', { ascending: true })
-    .limit(1)
-    .single();
-
-  let dailyLimit = 20;
-  if (firstEmail?.sent_at) {
-    const campaignDay = Math.floor(
-      (Date.now() - new Date(firstEmail.sent_at).getTime()) / 86_400_000
-    ) + 1;
-    if (campaignDay >= 6) dailyLimit = 40;
-    else if (campaignDay >= 3) dailyLimit = 30;
-  }
-
-  if ((todayCount ?? 0) >= dailyLimit) {
+  if ((todayCount ?? 0) >= 20) {
     return NextResponse.json(
-      { error: `Daily send limit reached (${dailyLimit}/day)` },
+      { error: 'Daily send limit reached (20/day)' },
       { status: 429 }
     );
   }
