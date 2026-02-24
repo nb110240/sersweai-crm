@@ -27,6 +27,14 @@ const STATUS_COLORS: Record<string, { bg: string; text: string; dot: string }> =
   'Do Not Contact':  { bg: '#f9fafb', text: '#374151', dot: '#4b5563' },
 };
 
+// What action is due on the follow-up date
+const NEXT_ACTION: Record<string, string> = {
+  'Not Contacted':  'Send Email 1',
+  'Email 1 Sent':   'Send Email 2',
+  'Email 2 Sent':   'Send Email 3',
+  'Email 3 Sent':   'Follow up',
+};
+
 function getStatusStyle(status: string | null) {
   return STATUS_COLORS[status || ''] || STATUS_COLORS['Not Contacted'];
 }
@@ -341,7 +349,7 @@ export default function CalendarPage() {
                             width: 5, height: 5, borderRadius: '50%',
                             background: style.dot, flexShrink: 0, display: 'inline-block'
                           }} />
-                          {lead.company_name}
+                          {NEXT_ACTION[lead.status || ''] ? `${NEXT_ACTION[lead.status!]} · ` : ''}{lead.company_name}
                         </div>
                       );
                     })}
@@ -396,7 +404,7 @@ export default function CalendarPage() {
                         fontSize: 11, padding: '3px 8px', borderRadius: 6,
                         background: style.bg, color: style.text, fontWeight: 500, whiteSpace: 'nowrap'
                       }}>
-                        {lead.status || 'Not Contacted'}
+                        {NEXT_ACTION[lead.status || ''] || lead.status || 'Follow up'}
                       </span>
                       {lead.email ? (
                         <a
