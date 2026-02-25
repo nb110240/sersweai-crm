@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
   const today = new Date();
   const daysOut = followUpDays[template];
   const next_follow_up = daysOut !== null
-    ? new Date(today.getTime() + daysOut * 86_400_000).toISOString().slice(0, 10)
+    ? nextWeekday(new Date(today.getTime() + daysOut * 86_400_000))
     : null;
 
   await supabase
@@ -135,6 +135,13 @@ export async function POST(req: NextRequest) {
     .eq('id', lead.id);
 
   return NextResponse.json({ ok: true, message_id: sendData?.id || null, scheduledAt: nextBusinessDay8AMPT() });
+}
+
+function nextWeekday(date: Date): string {
+  const day = date.getUTCDay();
+  if (day === 6) date.setUTCDate(date.getUTCDate() + 2); // Sat → Mon
+  if (day === 0) date.setUTCDate(date.getUTCDate() + 1); // Sun → Mon
+  return date.toISOString().slice(0, 10);
 }
 
 function nextBusinessDay8AMPT(): string {
