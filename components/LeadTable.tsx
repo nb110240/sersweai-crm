@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import LeadTimeline from './LeadTimeline';
 
 export type Lead = {
   id: string;
@@ -45,6 +46,7 @@ export default function LeadTable({ token }: Props) {
   const [notice, setNotice] = useState('');
   const [sendingLeads, setSendingLeads] = useState<Record<string, string>>({});
   const [convertingLeads, setConvertingLeads] = useState<Record<string, boolean>>({});
+  const [timelineLeadId, setTimelineLeadId] = useState<string | null>(null);
   const fetchIdRef = useRef(0);
 
   const statusCounts = useMemo(() => {
@@ -306,7 +308,12 @@ export default function LeadTable({ token }: Props) {
               viewedLeads.map((lead) => (
                 <tr key={lead.id}>
                   <td>
-                    <strong>{lead.company_name}</strong>
+                    <button
+                      onClick={() => setTimelineLeadId(lead.id)}
+                      style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left', fontWeight: 700, fontSize: 'inherit', color: 'inherit', textDecoration: 'underline', textDecorationColor: '#e5e7eb' }}
+                    >
+                      {lead.company_name}
+                    </button>
                     <div className="inline-meta">
                       {lead.city || '—'} {lead.zip || ''}
                     </div>
@@ -410,6 +417,13 @@ export default function LeadTable({ token }: Props) {
             )}
           </tbody>
         </table>
+      )}
+      {timelineLeadId && (
+        <LeadTimeline
+          leadId={timelineLeadId}
+          token={token}
+          onClose={() => setTimelineLeadId(null)}
+        />
       )}
     </div>
   );
