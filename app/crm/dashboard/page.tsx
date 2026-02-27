@@ -61,7 +61,7 @@ export default function DashboardPage() {
 
   const totalLeads = stats?.leads?.total || 0;
   const sentToday = stats?.emails?.sentToday || 0;
-  const dailyLimit = 20;
+  const dailyLimit = 25;
   const pct = Math.min(100, Math.round((sentToday / dailyLimit) * 100));
 
   const funnelStatuses = STATUS_ORDER.filter(s =>
@@ -194,7 +194,7 @@ export default function DashboardPage() {
 
             {/* Schedule info */}
             <div style={{ marginTop: 20, padding: '14px 20px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 12, fontSize: 13, color: '#15803d' }}>
-              <strong>Automation running:</strong> Lead gen daily at 6 AM PT · Auto-send daily at 7 AM PT · Up to 20 new leads + 20 emails per day
+              <strong>Automation running:</strong> Lead gen daily at 6 AM PT · Auto-send daily at 7 AM PT · Up to 20 new leads + 25 emails per day
             </div>
           </>
         )}
