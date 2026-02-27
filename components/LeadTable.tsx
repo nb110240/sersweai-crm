@@ -17,6 +17,8 @@ export type Lead = {
   next_follow_up: string | null;
   reply_type: string | null;
   notes: string | null;
+  opens: number;
+  clicked: boolean;
 };
 
 type Props = {
@@ -278,8 +280,18 @@ export default function LeadTable({ token }: Props) {
                     <div className="inline-meta">
                       {lead.city || '—'} {lead.zip || ''}
                     </div>
-                    <div style={{ marginTop: 6 }}>
+                    <div style={{ marginTop: 6, display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                       <span className="pill">{lead.category || 'Lead'}</span>
+                      {lead.opens > 0 && (
+                        <span title={`Opened ${lead.opens} time${lead.opens > 1 ? 's' : ''}`} style={{ fontSize: 11, color: '#6366f1', background: '#eef2ff', borderRadius: 6, padding: '2px 6px', cursor: 'default' }}>
+                          👁 {lead.opens}
+                        </span>
+                      )}
+                      {lead.clicked && (
+                        <span title="Clicked a link" style={{ fontSize: 11, color: '#16a34a', background: '#f0fdf4', borderRadius: 6, padding: '2px 6px', cursor: 'default' }}>
+                          🔗 Clicked
+                        </span>
+                      )}
                     </div>
                     {lead.website ? (
                       <div>

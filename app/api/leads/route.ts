@@ -35,5 +35,27 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ leads: data || [] });
+  const leadIds = (data || []).map((l: any) => l.id);
+  let eventMap: Record<string, { opens: number; clicked: boolean }> = {};
+
+  if (leadIds.length > 0) {
+    const { data: events } = await supabase
+      .from('email_events')
+      .select('lead_id, event_type')
+      .in('lead_id', leadIds);
+
+    for (const event of (events || [])) {
+      if (!eventMap[event.lead_id]) eventMap[event.lead_id] = { opens: 0, clicked: false };
+      if (event.event_type === 'open') eventMap[event.lead_id].opens++;
+      if (event.event_type === 'click') eventMap[event.lead_id].clicked = true;
+    }
+  }
+
+  const leads = (data || []).map((lead: any) => ({
+    ...lead,
+    opens: eventMap[lead.id]?.opens || 0,
+    clicked: eventMap[lead.id]?.clicked || false,
+  }));
+
+  return NextResponse.json({ leads });
 }
