@@ -44,6 +44,7 @@ export default function LeadTable({ token }: Props) {
   const [search, setSearch] = useState('');
   const [notice, setNotice] = useState('');
   const [sendingLeads, setSendingLeads] = useState<Record<string, string>>({});
+  const [convertingLeads, setConvertingLeads] = useState<Record<string, boolean>>({});
   const fetchIdRef = useRef(0);
 
   const statusCounts = useMemo(() => {
@@ -182,6 +183,35 @@ export default function LeadTable({ token }: Props) {
       setSendingLeads((prev) => {
         const next = { ...prev };
         delete next[key];
+        return next;
+      });
+    }
+  }
+
+  async function convertToDeal(lead: Lead) {
+    setConvertingLeads((prev) => ({ ...prev, [lead.id]: true }));
+    setNotice('');
+    try {
+      const res = await fetch('/api/deals', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ lead_id: lead.id, company_name: lead.company_name })
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setNotice(data.error || 'Failed to create deal');
+        return;
+      }
+      setNotice('Deal created!');
+    } catch {
+      setNotice('Network error — could not create deal');
+    } finally {
+      setConvertingLeads((prev) => {
+        const next = { ...prev };
+        delete next[lead.id];
         return next;
       });
     }
@@ -363,6 +393,16 @@ export default function LeadTable({ token }: Props) {
                       >
                         DNC
                       </button>
+                      {lead.status === 'Replied' && (
+                        <button
+                          className="ghost"
+                          onClick={() => convertToDeal(lead)}
+                          disabled={!!convertingLeads[lead.id]}
+                          style={{ color: '#16a34a', borderColor: '#bbf7d0' }}
+                        >
+                          {convertingLeads[lead.id] ? 'Converting...' : 'Convert to Deal'}
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

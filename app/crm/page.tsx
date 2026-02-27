@@ -93,6 +93,9 @@ export default function HomePage() {
           <a href="/crm/dashboard" style={{ fontSize: 13, padding: '6px 12px', borderRadius: 10, border: '1px solid var(--border)', textDecoration: 'none', color: 'var(--ink)' }}>
             Dashboard
           </a>
+          <a href="/crm/deals" style={{ fontSize: 13, padding: '6px 12px', borderRadius: 10, border: '1px solid var(--border)', textDecoration: 'none', color: 'var(--ink)' }}>
+            Deals →
+          </a>
           <a href="/crm/calendar" style={{ fontSize: 13, padding: '6px 12px', borderRadius: 10, border: '1px solid var(--border)', textDecoration: 'none', color: 'var(--ink)' }}>
             Calendar →
           </a>
