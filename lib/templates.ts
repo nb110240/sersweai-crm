@@ -13,8 +13,8 @@ export type Lead = {
 
 export type TemplateKey = 'email1' | 'email2' | 'email3';
 
-const senderName = process.env.SENDER_NAME || 'Your Name';
-const senderEmail = process.env.SENDER_EMAIL || 'you@example.com';
+const senderName = process.env.SENDER_NAME || 'SersweAI';
+const senderEmail = 'sersweai2@gmail.com';
 const bookingUrl = process.env.BOOKING_URL || '';
 
 const categoryExamples: Record<string, [string, string]> = {

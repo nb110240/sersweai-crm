@@ -35,13 +35,10 @@ export async function POST(req: NextRequest) {
   }
 
   const baseUrl = process.env.APP_BASE_URL || 'http://localhost:3000';
-  const senderName = process.env.SENDER_NAME || 'Your Name';
-  const senderEmail = process.env.SENDER_EMAIL || '';
+  const senderName = process.env.SENDER_NAME || 'SersweAI';
+  const fromEmail = 'auto@sersweai.com';
   const resendApiKey = process.env.RESEND_API_KEY || '';
 
-  if (!senderEmail) {
-    return NextResponse.json({ error: 'Missing SENDER_EMAIL env' }, { status: 400 });
-  }
   if (!resendApiKey) {
     return NextResponse.json({ error: 'Missing RESEND_API_KEY env' }, { status: 400 });
   }
@@ -85,7 +82,7 @@ export async function POST(req: NextRequest) {
   const { subject, text, html } = renderTemplate(lead, template as TemplateKey, baseUrl, emailRow.id);
 
   const { data: sendData, error: sendError } = await resend.emails.send({
-    from: `${senderName} <${senderEmail}>`,
+    from: `${senderName} <${fromEmail}>`,
     to: [lead.email],
     replyTo: 'sersweai2@gmail.com',
     subject,
