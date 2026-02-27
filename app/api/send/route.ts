@@ -87,6 +87,7 @@ export async function POST(req: NextRequest) {
   const { data: sendData, error: sendError } = await resend.emails.send({
     from: `${senderName} <${senderEmail}>`,
     to: [lead.email],
+    replyTo: 'sersweai2@gmail.com',
     subject,
     text,
     html,
