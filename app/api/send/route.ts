@@ -55,9 +55,9 @@ export async function POST(req: NextRequest) {
     .select('*', { count: 'exact', head: true })
     .gte('sent_at', todayMidnight.toISOString());
 
-  if ((todayCount ?? 0) >= 20) {
+  if ((todayCount ?? 0) >= 25) {
     return NextResponse.json(
-      { error: 'Daily send limit reached (20/day)' },
+      { error: 'Daily send limit reached (25/day)' },
       { status: 429 }
     );
   }
