@@ -536,13 +536,22 @@ export default function CalendarPage() {
         })()}
 
         {/* Legend */}
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 16, paddingBottom: 32 }}>
+        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 16, paddingBottom: 32, alignItems: 'center' }}>
           {Object.entries(STATUS_COLORS).map(([status, style]) => (
             <div key={status} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--muted)' }}>
               <span style={{ width: 8, height: 8, borderRadius: '50%', background: style.dot, display: 'inline-block' }} />
               {status}
             </div>
           ))}
+          <div style={{ width: 1, height: 12, background: 'var(--border)', margin: '0 4px' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--muted)' }}>
+            <span style={{ fontSize: 9, padding: '1px 4px', borderRadius: 4, background: '#eff6ff', color: '#1d4ed8', fontWeight: 600, lineHeight: '14px' }}>✉ 5</span>
+            Emails sent
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--muted)' }}>
+            <span style={{ fontSize: 9, padding: '1px 4px', borderRadius: 4, background: '#f0fdf4', color: '#15803d', fontWeight: 600, lineHeight: '14px' }}>+ 10</span>
+            Leads imported
+          </div>
         </div>
       </div>
     </div>
