@@ -26,6 +26,12 @@ const categoryExamples: Record<string, [string, string]> = {
   'Creative & Media':   ['client onboarding + asset collection workflows', 'automated project status update sequences'],
   'Retail':             ['abandoned cart + restock notification flows', 'post-purchase review and loyalty follow-ups'],
   'Food & Beverage':    ['catering inquiry → quote → follow-up automation', 'reservation confirmation + upsell sequences'],
+  'Insurance':          ['claims processing + renewal reminder automation', 'policy quote follow-up sequences'],
+  'Dental & Medical':   ['patient intake + insurance pre-verification automation', 'appointment reminder + post-visit follow-up sequences'],
+  'Property Management':['tenant communication + maintenance request routing', 'lease renewal reminder + rent collection automation'],
+  'Financial Advisors': ['client onboarding + document collection automation', 'portfolio review scheduling + meeting prep workflows'],
+  'Veterinary':         ['pet owner intake + vaccination reminder automation', 'appointment confirmation + post-visit care follow-ups'],
+  'Legal (Solo/Small)': ['client intake + document collection automation', 'case status update + deadline reminder sequences'],
 };
 
 export function renderTemplate(lead: Lead, template: TemplateKey, baseUrl: string, emailId: string) {
