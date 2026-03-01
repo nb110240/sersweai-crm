@@ -4,6 +4,31 @@ import { requireAuth } from '../../../lib/auth';
 import { renderTemplate, TemplateKey } from '../../../lib/templates';
 import { Resend } from 'resend';
 
+// Category-aware follow-up intervals (Feature 9)
+const categoryFollowUp: Record<string, Record<string, number | null>> = {
+  'Technology':           { email1: 2, email2: 5, email3: null, email4: null },
+  'Real Estate':          { email1: 4, email2: 10, email3: null, email4: null },
+  'Health & Wellness':    { email1: 3, email2: 7, email3: null, email4: null },
+  'Insurance':            { email1: 3, email2: 7, email3: null, email4: null },
+  'Dental & Medical':     { email1: 3, email2: 7, email3: null, email4: null },
+  'Legal (Solo/Small)':   { email1: 3, email2: 7, email3: null, email4: null },
+  'Financial Advisors':   { email1: 3, email2: 8, email3: null, email4: null },
+  'Property Management':  { email1: 3, email2: 7, email3: null, email4: null },
+  'Veterinary':           { email1: 3, email2: 7, email3: null, email4: null },
+  'Beauty & Fitness':     { email1: 2, email2: 5, email3: null, email4: null },
+  'Home Services':        { email1: 2, email2: 5, email3: null, email4: null },
+  'Creative & Media':     { email1: 3, email2: 7, email3: null, email4: null },
+  'Retail':               { email1: 3, email2: 7, email3: null, email4: null },
+  'Food & Beverage':      { email1: 3, email2: 7, email3: null, email4: null },
+};
+
+const defaultFollowUpDays: Record<string, number | null> = {
+  email1: 3,
+  email2: 7,
+  email3: null,
+  email4: null,
+};
+
 export async function POST(req: NextRequest) {
   const auth = requireAuth(req);
   if (auth) return auth;
@@ -43,7 +68,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Missing RESEND_API_KEY env' }, { status: 400 });
   }
 
-  // --- Daily rate limiting (20/day) ---
+  // --- Daily rate limiting (25/day) ---
   const todayMidnight = new Date();
   todayMidnight.setUTCHours(0, 0, 0, 0);
 
@@ -79,7 +104,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to create email record' }, { status: 500 });
   }
 
-  const { subject, text, html } = renderTemplate(lead, template as TemplateKey, baseUrl, emailRow.id);
+  const { subject, subjectVariant, text, html } = renderTemplate(lead, template as TemplateKey, baseUrl, emailRow.id);
 
   const { data: sendData, error: sendError } = await resend.emails.send({
     from: `${senderName} <${fromEmail}>`,
@@ -101,24 +126,22 @@ export async function POST(req: NextRequest) {
       subject,
       body: text,
       message_id: sendData?.id || null,
-      sent_at: new Date().toISOString()
+      sent_at: new Date().toISOString(),
+      ...(subjectVariant ? { subject_variant: subjectVariant } : {})
     })
     .eq('id', emailRow.id);
 
   const statusMap: Record<string, string> = {
     email1: 'Email 1 Sent',
     email2: 'Email 2 Sent',
-    email3: 'Email 3 Sent'
+    email3: 'Email 3 Sent',
+    email4: 'Email 4 Sent',
   };
 
-  const followUpDays: Record<string, number | null> = {
-    email1: 3,
-    email2: 7,
-    email3: null
-  };
+  // Category-aware follow-up interval (Feature 9)
+  const daysOut = categoryFollowUp[lead.category]?.[template] ?? defaultFollowUpDays[template] ?? null;
 
   const today = new Date();
-  const daysOut = followUpDays[template];
   const next_follow_up = daysOut !== null
     ? nextWeekday(new Date(today.getTime() + daysOut * 86_400_000))
     : null;
@@ -128,7 +151,7 @@ export async function POST(req: NextRequest) {
     .update({
       status: statusMap[template] || lead.status,
       last_contacted: today.toISOString().slice(0, 10),
-      ...(template !== 'email3' ? { next_follow_up } : { next_follow_up: null })
+      next_follow_up,
     })
     .eq('id', lead.id);
 

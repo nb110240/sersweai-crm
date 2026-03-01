@@ -26,7 +26,8 @@ function normalizeRow(row: Record<string, string>) {
     last_contacted: row.last_contacted?.trim() || null,
     next_follow_up: row.next_follow_up?.trim() || null,
     reply_type: row.reply_type?.trim() || null,
-    notes: row.notes?.trim() || null
+    notes: row.notes?.trim() || null,
+    first_name: row.first_name?.trim() || null
   };
 }
 
@@ -64,14 +65,31 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: err?.message || 'Supabase config missing' }, { status: 500 });
   }
 
+  // --- Dedup: skip rows whose email already exists in DB ---
+  const existingEmails = new Set<string>();
+  if (rows.some((r: any) => r.email)) {
+    const { data: existing } = await supabase
+      .from('leads')
+      .select('email')
+      .not('email', 'is', null);
+    (existing || []).forEach((l: any) => {
+      if (l.email) existingEmails.add(l.email.toLowerCase());
+    });
+  }
+  const dedupedRows = rows.filter((r: any) => !r.email || !existingEmails.has(r.email.toLowerCase()));
+
+  if (!dedupedRows.length) {
+    return NextResponse.json({ inserted: 0, skipped: rows.length });
+  }
+
   const { data, error } = await supabase
     .from('leads')
-    .upsert(rows, { onConflict: 'company_name,zip' })
+    .upsert(dedupedRows, { onConflict: 'company_name,zip' })
     .select('id');
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ inserted: data?.length || 0 });
+  return NextResponse.json({ inserted: data?.length || 0, skipped: rows.length - dedupedRows.length });
 }

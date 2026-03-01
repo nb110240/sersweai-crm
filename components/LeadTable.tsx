@@ -31,6 +31,7 @@ const STATUS_OPTIONS = [
   'Email 1 Sent',
   'Email 2 Sent',
   'Email 3 Sent',
+  'Email 4 Sent',
   'Replied',
   'Not Fit',
   'Do Not Contact'
@@ -47,6 +48,7 @@ export default function LeadTable({ token }: Props) {
   const [sendingLeads, setSendingLeads] = useState<Record<string, string>>({});
   const [convertingLeads, setConvertingLeads] = useState<Record<string, boolean>>({});
   const [timelineLeadId, setTimelineLeadId] = useState<string | null>(null);
+  const [contactFormOnly, setContactFormOnly] = useState(false);
   const fetchIdRef = useRef(0);
 
   const statusCounts = useMemo(() => {
@@ -85,6 +87,7 @@ export default function LeadTable({ token }: Props) {
     setError('');
     const params = new URLSearchParams();
     if (searchTerm) params.set('search', searchTerm);
+    if (contactFormOnly) params.set('contact_form_only', 'true');
 
     try {
       const res = await fetch(`/api/leads?${params.toString()}`, {
@@ -115,7 +118,7 @@ export default function LeadTable({ token }: Props) {
 
   useEffect(() => {
     fetchLeads(search);
-  }, [search, token]);
+  }, [search, token, contactFormOnly]);
 
   async function updateLead(id: string, updates: Partial<Lead>) {
     setNotice('');
@@ -169,7 +172,8 @@ export default function LeadTable({ token }: Props) {
       const statusMap: Record<string, string> = {
         email1: 'Email 1 Sent',
         email2: 'Email 2 Sent',
-        email3: 'Email 3 Sent'
+        email3: 'Email 3 Sent',
+        email4: 'Email 4 Sent',
       };
       setLeads((prev) =>
         prev.map((lead) =>
@@ -275,6 +279,13 @@ export default function LeadTable({ token }: Props) {
             {s} ({statusCounts[s] || 0})
           </button>
         ))}
+        <button
+          className={`pill-filter ${contactFormOnly ? 'active' : ''}`}
+          onClick={() => setContactFormOnly((v) => !v)}
+          type="button"
+        >
+          Contact Form Only
+        </button>
       </div>
       <p className="results-count">
         Showing {viewedLeads.length} lead{viewedLeads.length === 1 ? '' : 's'}
@@ -388,6 +399,15 @@ export default function LeadTable({ token }: Props) {
                       >
                         {sendingLeads[`${lead.id}:email3`] ? 'Sending...' : 'Send Email 3'}
                       </button>
+                      {lead.status === 'Email 3 Sent' && (
+                        <button
+                          onClick={() => sendEmail(lead.id, 'email4')}
+                          className="secondary"
+                          disabled={!lead.email || !!sendingLeads[`${lead.id}:email4`]}
+                        >
+                          {sendingLeads[`${lead.id}:email4`] ? 'Sending...' : 'Send Email 4'}
+                        </button>
+                      )}
                       <button
                         className="ghost"
                         onClick={() => updateLead(lead.id, { status: 'Replied' })}

@@ -22,6 +22,10 @@ export async function GET(req: NextRequest) {
     .order('created_at', { ascending: false })
     .limit(500);
 
+  if (searchParams.get('contact_form_only') === 'true') {
+    query = query.is('email', null).not('contact_form_url', 'is', null);
+  }
+
   if (status) {
     query = query.eq('status', status);
   }
