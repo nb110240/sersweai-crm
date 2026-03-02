@@ -27,7 +27,8 @@ function normalizeRow(row: Record<string, string>) {
     next_follow_up: row.next_follow_up?.trim() || null,
     reply_type: row.reply_type?.trim() || null,
     notes: row.notes?.trim() || null,
-    first_name: row.first_name?.trim() || null
+    first_name: row.first_name?.trim() || null,
+    source_combo: row.source_combo?.trim() || null
   };
 }
 

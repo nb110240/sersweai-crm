@@ -430,6 +430,21 @@ export default function LeadTable({ token }: Props) {
                           {convertingLeads[lead.id] ? 'Converting...' : 'Convert to Deal'}
                         </button>
                       )}
+                      {!lead.email && lead.contact_form_url && (
+                        <button
+                          className="secondary"
+                          onClick={() => {
+                            const msg = `Hi, I'm Neil from SersweAI. We help ${lead.category || 'local'} businesses save time by automating repetitive admin work. Would you be open to a quick call to discuss how we could help ${lead.company_name}? You can learn more at sersweai.com`;
+                            navigator.clipboard.writeText(msg);
+                            window.open(lead.contact_form_url!, '_blank');
+                            updateLead(lead.id, { status: 'Email 1 Sent' });
+                            setNotice('Message copied to clipboard — paste it in the contact form!');
+                          }}
+                          style={{ color: '#7c3aed', borderColor: '#c4b5fd' }}
+                        >
+                          Reach Out
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>

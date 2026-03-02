@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Missing RESEND_API_KEY env' }, { status: 400 });
   }
 
-  // --- Daily rate limiting (25/day) ---
+  // --- Daily rate limiting (50/day) ---
   const todayMidnight = new Date();
   todayMidnight.setUTCHours(0, 0, 0, 0);
 
@@ -77,9 +77,9 @@ export async function POST(req: NextRequest) {
     .select('*', { count: 'exact', head: true })
     .gte('sent_at', todayMidnight.toISOString());
 
-  if ((todayCount ?? 0) >= 25) {
+  if ((todayCount ?? 0) >= 50) {
     return NextResponse.json(
-      { error: 'Daily send limit reached (25/day)' },
+      { error: 'Daily send limit reached (50/day)' },
       { status: 429 }
     );
   }
