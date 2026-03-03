@@ -13,8 +13,17 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: err?.message }, { status: 500 });
   }
 
-  const todayMidnight = new Date();
-  todayMidnight.setUTCHours(0, 0, 0, 0);
+  // Use PT midnight (not UTC) so "today" matches the user's timezone
+  const ptDate = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+  const todayMidnight = new Date(`${ptDate}T00:00:00-08:00`);
+  // Correct for DST: re-derive offset dynamically
+  const fmt = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', timeZoneName: 'shortOffset' });
+  const tzPart = fmt.formatToParts(new Date()).find(p => p.type === 'timeZoneName')?.value || 'GMT-8';
+  const offsetMatch = tzPart.match(/GMT([+-]\d+)/);
+  const offsetHours = offsetMatch ? parseInt(offsetMatch[1], 10) : -8;
+  const sign = offsetHours >= 0 ? '+' : '-';
+  const abs = String(Math.abs(offsetHours)).padStart(2, '0');
+  const todayMidnightPT = new Date(`${ptDate}T00:00:00${sign}${abs}:00`);
 
   const weekAgo = new Date(Date.now() - 7 * 86_400_000);
 
@@ -25,7 +34,7 @@ export async function GET(req: NextRequest) {
     { data: recentEmails },
   ] = await Promise.all([
     supabase.from('leads').select('id, status, email, created_at'),
-    supabase.from('emails').select('id, template').gte('sent_at', todayMidnight.toISOString()),
+    supabase.from('emails').select('id, template').gte('sent_at', todayMidnightPT.toISOString()),
     supabase.from('emails').select('id, template').gte('sent_at', weekAgo.toISOString()),
     supabase
       .from('emails')
@@ -42,7 +51,7 @@ export async function GET(req: NextRequest) {
   for (const lead of leads || []) {
     byStatus[lead.status] = (byStatus[lead.status] || 0) + 1;
     if (lead.email) withEmail++;
-    if (lead.created_at >= todayMidnight.toISOString()) addedToday++;
+    if (lead.created_at >= todayMidnightPT.toISOString()) addedToday++;
   }
 
   const emailsByTemplate: Record<string, number> = {};

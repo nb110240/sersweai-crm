@@ -68,14 +68,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Missing RESEND_API_KEY env' }, { status: 400 });
   }
 
-  // --- Daily rate limiting (50/day) ---
-  const todayMidnight = new Date();
-  todayMidnight.setUTCHours(0, 0, 0, 0);
+  // --- Daily rate limiting (50/day) — use PT midnight ---
+  const ptDate = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
+  const fmtRL = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Los_Angeles', timeZoneName: 'shortOffset' });
+  const tzRL = fmtRL.formatToParts(new Date()).find(p => p.type === 'timeZoneName')?.value || 'GMT-8';
+  const rlMatch = tzRL.match(/GMT([+-]\d+)/);
+  const rlOffset = rlMatch ? parseInt(rlMatch[1], 10) : -8;
+  const rlSign = rlOffset >= 0 ? '+' : '-';
+  const rlAbs = String(Math.abs(rlOffset)).padStart(2, '0');
+  const todayMidnightPT = new Date(`${ptDate}T00:00:00${rlSign}${rlAbs}:00`);
 
   const { count: todayCount } = await supabase
     .from('emails')
     .select('*', { count: 'exact', head: true })
-    .gte('sent_at', todayMidnight.toISOString());
+    .gte('sent_at', todayMidnightPT.toISOString());
 
   if ((todayCount ?? 0) >= 50) {
     return NextResponse.json(
@@ -173,11 +179,17 @@ function nextBusinessDay8AMPT(): string {
     next.toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'long' })
   ));
   const datePT = next.toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
-  // Determine PST vs PDT offset
-  const month = next.getMonth() + 1;
-  const day = next.getDate();
-  const isDST = (month > 3 && month < 11) ||
-    (month === 3 && day >= 8) ||
-    (month === 11 && day < 7);
-  return `${datePT}T08:00:00${isDST ? '-07:00' : '-08:00'}`;
+  // Dynamically resolve PT offset using Intl (handles DST correctly)
+  const probe = new Date(`${datePT}T12:00:00Z`);
+  const fmt = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Los_Angeles',
+    timeZoneName: 'shortOffset',
+  });
+  const parts = fmt.formatToParts(probe);
+  const tzPart = parts.find(p => p.type === 'timeZoneName')?.value || 'GMT-8';
+  const offsetMatch = tzPart.match(/GMT([+-]\d+)/);
+  const offsetHours = offsetMatch ? parseInt(offsetMatch[1], 10) : -8;
+  const sign = offsetHours >= 0 ? '+' : '-';
+  const abs = String(Math.abs(offsetHours)).padStart(2, '0');
+  return `${datePT}T08:00:00${sign}${abs}:00`;
 }
