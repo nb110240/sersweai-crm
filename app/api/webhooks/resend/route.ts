@@ -44,7 +44,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, matched: false });
   }
 
-  const newStatus = eventType === 'email.complained' ? 'Do Not Contact' : 'Not Fit';
+  // Both bounces and complaints should prevent future sends
+  const newStatus = 'Do Not Contact';
 
   await supabase
     .from('leads')

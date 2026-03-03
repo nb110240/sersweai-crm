@@ -112,6 +112,8 @@ export async function POST(req: NextRequest) {
 
   const { subject, subjectVariant, text, html } = renderTemplate(lead, template as TemplateKey, baseUrl, emailRow.id);
 
+  const unsubscribeUrl = `${baseUrl}/api/unsubscribe/${lead.id}`;
+
   const { data: sendData, error: sendError } = await resend.emails.send({
     from: `${senderName} <${fromEmail}>`,
     to: [lead.email],
@@ -119,6 +121,10 @@ export async function POST(req: NextRequest) {
     subject,
     text,
     html,
+    headers: {
+      'List-Unsubscribe': `<${unsubscribeUrl}>, <mailto:sersweai2@gmail.com?subject=unsubscribe>`,
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    },
     scheduledAt: nextBusinessDay8AMPT()
   } as any);
 
