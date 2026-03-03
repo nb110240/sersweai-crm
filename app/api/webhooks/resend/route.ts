@@ -2,11 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabase } from '../../../../lib/supabase';
 
 export async function POST(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const secret = searchParams.get('secret');
   const expectedSecret = process.env.RESEND_WEBHOOK_SECRET || '';
 
-  if (!expectedSecret || secret !== expectedSecret) {
+  // Check header-based secret (svix-signature from Resend, or custom header)
+  const svixSignature = req.headers.get('svix-signature') || '';
+  const customSecret = req.headers.get('x-webhook-secret') || '';
+
+  if (!expectedSecret || (svixSignature !== expectedSecret && customSecret !== expectedSecret)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -29,8 +31,8 @@ export async function POST(req: NextRequest) {
   let supabase;
   try {
     supabase = getSupabase();
-  } catch (err: any) {
-    return NextResponse.json({ error: err?.message || 'Supabase config missing' }, { status: 500 });
+  } catch {
+    return NextResponse.json({ error: 'Service unavailable' }, { status: 500 });
   }
 
   // Look up the email record by Resend message_id

@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from 'react';
 
-const STORAGE_KEY = 'leadcrm_password';
-
 const STATUS_ORDER = [
   'Not Contacted',
   'Email 1 Sent',
@@ -41,23 +39,18 @@ function timeAgo(dateStr: string) {
 }
 
 export default function DashboardPage() {
-  const [token, setToken] = useState<string | null>(null);
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const saved = window.localStorage.getItem(STORAGE_KEY);
-    if (saved) setToken(saved);
-    else window.location.href = '/crm';
-  }, []);
-
-  useEffect(() => {
-    if (!token) return;
-    fetch('/api/stats', { headers: { Authorization: `Bearer ${token}` } })
-      .then(r => r.json())
-      .then(d => { setStats(d); setLoading(false); })
+    fetch('/api/stats')
+      .then(r => {
+        if (r.status === 401) { window.location.href = '/crm'; return null; }
+        return r.json();
+      })
+      .then(d => { if (d) setStats(d); setLoading(false); })
       .catch(() => setLoading(false));
-  }, [token]);
+  }, []);
 
   const totalLeads = stats?.leads?.total || 0;
   const sentToday = stats?.emails?.sentToday || 0;

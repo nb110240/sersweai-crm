@@ -2,8 +2,6 @@
 
 import { useState } from 'react';
 
-const STORAGE_KEY = 'leadcrm_password';
-
 export default function ImportPage() {
   const [file, setFile] = useState<File | null>(null);
   const [notice, setNotice] = useState('');
@@ -13,11 +11,6 @@ export default function ImportPage() {
     e.preventDefault();
     setNotice('');
 
-    const token = window.localStorage.getItem(STORAGE_KEY);
-    if (!token) {
-      setNotice('Missing app password. Go back to login.');
-      return;
-    }
     if (!file) {
       setNotice('Choose a CSV file first.');
       return;
@@ -30,9 +23,12 @@ export default function ImportPage() {
 
       const res = await fetch('/api/import', {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
         body: form
       });
+      if (res.status === 401) {
+        setNotice('Not authenticated. Please log in from the main dashboard.');
+        return;
+      }
       const payload = await res.json();
       if (!res.ok) {
         throw new Error(payload?.error || 'Import failed');

@@ -1,24 +1,22 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import LeadTable from '../../components/LeadTable';
-
-const STORAGE_KEY = 'leadcrm_password';
 
 export default function HomePage() {
   const [password, setPassword] = useState('');
-  const [token, setToken] = useState<string | null>(null);
+  const [authed, setAuthed] = useState(false);
   const [notice, setNotice] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
+  // On mount, check if cookie auth is valid
   useEffect(() => {
-    const saved = window.localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      setToken(saved);
-    }
+    fetch('/api/login', { method: 'GET' })
+      .then((res) => {
+        if (res.ok) setAuthed(true);
+      })
+      .finally(() => setLoading(false));
   }, []);
-
-  const isAuthed = useMemo(() => Boolean(token), [token]);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -33,8 +31,8 @@ export default function HomePage() {
       if (!res.ok) {
         throw new Error('Invalid password');
       }
-      window.localStorage.setItem(STORAGE_KEY, password);
-      setToken(password);
+      // Cookie is set by server — no localStorage needed
+      setAuthed(true);
       setPassword('');
     } catch (err: any) {
       setNotice(err?.message || 'Login failed');
@@ -43,7 +41,28 @@ export default function HomePage() {
     }
   }
 
-  if (!isAuthed) {
+  async function handleLogout() {
+    await fetch('/api/logout', { method: 'POST' });
+    setAuthed(false);
+  }
+
+  if (loading) {
+    return (
+      <div className="app-shell">
+        <div className="topbar">
+          <div className="brand">
+            <div className="brand-mark" />
+            <div>
+              <div className="brand-title">SersweAI CRM</div>
+              <div className="brand-sub">Local business outreach</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!authed) {
     return (
       <div className="app-shell">
         <div className="topbar">
@@ -99,6 +118,12 @@ export default function HomePage() {
           <a href="/crm/calendar" style={{ fontSize: 13, padding: '6px 12px', borderRadius: 10, border: '1px solid var(--border)', textDecoration: 'none', color: 'var(--ink)' }}>
             Calendar →
           </a>
+          <button
+            onClick={handleLogout}
+            style={{ fontSize: 13, padding: '6px 12px', borderRadius: 10, border: '1px solid var(--border)', background: 'none', cursor: 'pointer', color: 'var(--ink)' }}
+          >
+            Logout
+          </button>
           <div className="badge">CRM · MVP</div>
         </div>
       </div>
@@ -113,7 +138,7 @@ export default function HomePage() {
         </div>
 
         <div className="card">
-          <LeadTable token={token as string} />
+          <LeadTable />
         </div>
       </div>
     </div>

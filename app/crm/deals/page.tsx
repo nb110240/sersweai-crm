@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from 'react';
 
-const STORAGE_KEY = 'leadcrm_password';
-
 const STAGES = ['Discovery', 'Proposal', 'Closed Won', 'Closed Lost'] as const;
 type Stage = typeof STAGES[number];
 
@@ -26,26 +24,28 @@ type Deal = {
 };
 
 export default function DealsPage() {
-  const [token, setToken] = useState<string | null>(null);
+  const [authed, setAuthed] = useState(false);
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingValue, setEditingValue] = useState<Record<string, string>>({});
   const [notice, setNotice] = useState('');
 
   useEffect(() => {
-    const saved = window.localStorage.getItem(STORAGE_KEY);
-    if (!saved) { window.location.href = '/crm'; return; }
-    setToken(saved);
+    fetch('/api/login', { method: 'GET' })
+      .then(r => {
+        if (!r.ok) { window.location.href = '/crm'; return; }
+        setAuthed(true);
+      });
   }, []);
 
   useEffect(() => {
-    if (!token) return;
+    if (!authed) return;
     fetchDeals();
-  }, [token]);
+  }, [authed]);
 
   async function fetchDeals() {
     setLoading(true);
-    const res = await fetch('/api/deals', { headers: { Authorization: `Bearer ${token}` } });
+    const res = await fetch('/api/deals');
     const data = await res.json();
     setDeals(data.deals || []);
     setLoading(false);
@@ -54,7 +54,7 @@ export default function DealsPage() {
   async function updateDeal(id: string, updates: Partial<Deal>) {
     const res = await fetch(`/api/deals/${id}`, {
       method: 'PATCH',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updates),
     });
     const data = await res.json();
@@ -63,7 +63,7 @@ export default function DealsPage() {
 
   async function deleteDeal(id: string) {
     if (!confirm('Delete this deal?')) return;
-    await fetch(`/api/deals/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+    await fetch(`/api/deals/${id}`, { method: 'DELETE' });
     setDeals(prev => prev.filter(d => d.id !== id));
   }
 
@@ -72,7 +72,7 @@ export default function DealsPage() {
     if (!company_name?.trim()) return;
     const res = await fetch('/api/deals', {
       method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ company_name: company_name.trim() }),
     });
     const data = await res.json();
@@ -92,7 +92,7 @@ export default function DealsPage() {
   const wonValue = deals.filter(d => d.stage === 'Closed Won').reduce((sum, d) => sum + (d.value || 0), 0);
   const activeDeals = deals.filter(d => d.stage === 'Discovery' || d.stage === 'Proposal').length;
 
-  if (!token) return null;
+  if (!authed) return null;
 
   return (
     <div className="app-shell">

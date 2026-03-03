@@ -1,8 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-
-const STORAGE_KEY = 'leadcrm_password';
+import { useEffect, useState, useMemo } from 'react';
 
 type Lead = {
   id: string;
@@ -65,9 +63,10 @@ type ActivityByDate = {
 
 export default function CalendarPage() {
   const [password, setPassword] = useState('');
-  const [token, setToken] = useState<string | null>(null);
+  const [authed, setAuthed] = useState(false);
   const [notice, setNotice] = useState('');
   const [loading, setLoading] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
 
   const [leads, setLeads] = useState<Lead[]>([]);
   const [fetchError, setFetchError] = useState('');
@@ -80,17 +79,18 @@ export default function CalendarPage() {
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
 
   useEffect(() => {
-    const saved = window.localStorage.getItem(STORAGE_KEY);
-    if (saved) setToken(saved);
+    fetch('/api/login', { method: 'GET' })
+      .then(r => { if (r.ok) setAuthed(true); })
+      .finally(() => setAuthChecked(true));
   }, []);
 
   useEffect(() => {
-    if (!token) return;
+    if (!authed) return;
     setFetching(true);
     setFetchError('');
     Promise.all([
-      fetch('/api/leads', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
-      fetch('/api/activity', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json()),
+      fetch('/api/leads').then(r => r.json()),
+      fetch('/api/activity').then(r => r.json()),
     ])
       .then(([leadsData, activityData]) => {
         if (leadsData.error) throw new Error(leadsData.error);
@@ -99,9 +99,7 @@ export default function CalendarPage() {
       })
       .catch(e => setFetchError(e.message))
       .finally(() => setFetching(false));
-  }, [token]);
-
-  const isAuthed = useMemo(() => Boolean(token), [token]);
+  }, [authed]);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -114,8 +112,7 @@ export default function CalendarPage() {
         body: JSON.stringify({ password })
       });
       if (!res.ok) throw new Error('Invalid password');
-      window.localStorage.setItem(STORAGE_KEY, password);
-      setToken(password);
+      setAuthed(true);
       setPassword('');
     } catch (err: any) {
       setNotice(err?.message || 'Login failed');
@@ -171,7 +168,9 @@ export default function CalendarPage() {
 
   const selectedLeads = selectedDay ? (leadsByDate[dayKey(selectedDay)] || []) : [];
 
-  if (!isAuthed) {
+  if (!authChecked) return null;
+
+  if (!authed) {
     return (
       <div className="app-shell">
         <div className="topbar">

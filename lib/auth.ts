@@ -6,15 +6,17 @@ export function requireAuth(req: NextRequest): NextResponse | null {
     return null;
   }
 
+  // Check HTTP-only cookie first
+  const cookieToken = req.cookies.get('crm_token')?.value;
+  if (cookieToken === password) {
+    return null;
+  }
+
+  // Fall back to Bearer header (backward compatible)
   const auth = req.headers.get('authorization') || '';
-  if (!auth.startsWith('Bearer ')) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  if (auth.startsWith('Bearer ') && auth.slice(7) === password) {
+    return null;
   }
 
-  const token = auth.slice(7);
-  if (token !== password) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  return null;
+  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 }

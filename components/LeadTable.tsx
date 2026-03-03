@@ -22,9 +22,7 @@ export type Lead = {
   clicked: boolean;
 };
 
-type Props = {
-  token: string;
-};
+type Props = Record<string, never>;
 
 const STATUS_OPTIONS = [
   'Not Contacted',
@@ -37,7 +35,7 @@ const STATUS_OPTIONS = [
   'Do Not Contact'
 ];
 
-export default function LeadTable({ token }: Props) {
+export default function LeadTable(_props: Props) {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -91,7 +89,7 @@ export default function LeadTable({ token }: Props) {
 
     try {
       const res = await fetch(`/api/leads?${params.toString()}`, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: {}
       });
       if (!res.ok) throw new Error('Failed to load leads');
       const data = await res.json();
@@ -118,14 +116,13 @@ export default function LeadTable({ token }: Props) {
 
   useEffect(() => {
     fetchLeads(search);
-  }, [search, token, contactFormOnly]);
+  }, [search, contactFormOnly]);
 
   async function updateLead(id: string, updates: Partial<Lead>) {
     setNotice('');
     const res = await fetch(`/api/leads/${id}`, {
       method: 'PATCH',
       headers: {
-        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(updates)
@@ -155,7 +152,6 @@ export default function LeadTable({ token }: Props) {
       const res = await fetch('/api/send', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ lead_id: leadId, template })
@@ -201,7 +197,6 @@ export default function LeadTable({ token }: Props) {
       const res = await fetch('/api/deals', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ lead_id: lead.id, company_name: lead.company_name })
@@ -456,7 +451,6 @@ export default function LeadTable({ token }: Props) {
       {timelineLeadId && (
         <LeadTimeline
           leadId={timelineLeadId}
-          token={token}
           onClose={() => setTimelineLeadId(null)}
         />
       )}

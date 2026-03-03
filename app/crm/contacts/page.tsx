@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from 'react';
 
-const STORAGE_KEY = 'leadcrm_password';
-
 type Contact = {
   id: string;
   full_name: string;
@@ -17,28 +15,26 @@ type Contact = {
 };
 
 export default function ContactsPage() {
-  const [token, setToken] = useState<string | null>(null);
+  const [authed, setAuthed] = useState(false);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const saved = window.localStorage.getItem(STORAGE_KEY);
-    if (saved) setToken(saved);
+    fetch('/api/login', { method: 'GET' })
+      .then(r => { if (r.ok) setAuthed(true); });
   }, []);
 
   useEffect(() => {
-    if (!token) return;
+    if (!authed) return;
     fetchContacts();
-  }, [token]);
+  }, [authed]);
 
   async function fetchContacts() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/contacts', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const res = await fetch('/api/contacts');
       if (!res.ok) throw new Error('Failed to load contacts');
       const data = await res.json();
       setContacts(data.contacts || []);
@@ -60,7 +56,7 @@ export default function ContactsPage() {
     });
   }
 
-  if (!token) {
+  if (!authed) {
     return (
       <div className="app-shell">
         <div className="topbar">

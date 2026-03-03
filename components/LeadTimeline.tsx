@@ -25,7 +25,6 @@ type Lead = {
 
 type Props = {
   leadId: string;
-  token: string;
   onClose: () => void;
 };
 
@@ -42,22 +41,20 @@ const REPLY_TYPE_COLOR: Record<string, string> = {
   needs_followup: '#7c3aed',
 };
 
-export default function LeadTimeline({ leadId, token, onClose }: Props) {
+export default function LeadTimeline({ leadId, onClose }: Props) {
   const [lead, setLead] = useState<Lead | null>(null);
   const [timeline, setTimeline] = useState<TimelineEvent[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch(`/api/leads/${leadId}/timeline`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    fetch(`/api/leads/${leadId}/timeline`)
       .then(r => r.json())
       .then(data => {
         setLead(data.lead);
         setTimeline(data.timeline || []);
         setLoading(false);
       });
-  }, [leadId, token]);
+  }, [leadId]);
 
   function formatDate(dateStr: string) {
     const d = new Date(dateStr);

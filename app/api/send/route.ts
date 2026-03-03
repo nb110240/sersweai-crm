@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
   try {
     supabase = getSupabase();
   } catch (err: any) {
-    return NextResponse.json({ error: err?.message || 'Supabase config missing' }, { status: 500 });
+    return NextResponse.json({ error: 'Service unavailable' }, { status: 500 });
   }
 
   const { data: lead, error } = await supabase
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
   const resendApiKey = process.env.RESEND_API_KEY || '';
 
   if (!resendApiKey) {
-    return NextResponse.json({ error: 'Missing RESEND_API_KEY env' }, { status: 400 });
+    return NextResponse.json({ error: 'Email service not configured' }, { status: 400 });
   }
 
   // --- Daily rate limiting (50/day) — use PT midnight ---

@@ -1,10 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabase } from '../../../lib/supabase';
 import { requireAuth } from '../../../lib/auth';
+import { rateLimit } from '../../../lib/rate-limit';
 import { Resend } from 'resend';
 
 // POST — public endpoint called by n8n webhook (no auth)
 export async function POST(req: NextRequest) {
+  const blocked = rateLimit(req, { limit: 10, windowMs: 60_000 });
+  if (blocked) return blocked;
   const body = await req.json().catch(() => ({}));
   const { full_name, email, phone, company_name, interest, message, source } = body;
 
@@ -16,7 +19,7 @@ export async function POST(req: NextRequest) {
   try {
     supabase = getSupabase();
   } catch (err: any) {
-    return NextResponse.json({ error: err?.message || 'Supabase config missing' }, { status: 500 });
+    return NextResponse.json({ error: 'Service unavailable' }, { status: 500 });
   }
 
   const { data, error } = await supabase
@@ -40,7 +43,7 @@ export async function POST(req: NextRequest) {
   // Send email notification
   const resendApiKey = process.env.RESEND_API_KEY || '';
   const senderEmail = process.env.SENDER_EMAIL || '';
-  const notifyEmail = process.env.SENDER_EMAIL || 'neilbajaj1102@gmail.com';
+  const notifyEmail = process.env.SENDER_EMAIL || 'sersweai2@gmail.com';
 
   if (resendApiKey && senderEmail) {
     try {
@@ -84,7 +87,7 @@ export async function GET(req: NextRequest) {
   try {
     supabase = getSupabase();
   } catch (err: any) {
-    return NextResponse.json({ error: err?.message || 'Supabase config missing' }, { status: 500 });
+    return NextResponse.json({ error: 'Service unavailable' }, { status: 500 });
   }
 
   const { data, error } = await supabase
