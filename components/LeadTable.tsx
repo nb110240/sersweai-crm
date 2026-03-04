@@ -24,6 +24,23 @@ export type Lead = {
 
 type Props = Record<string, never>;
 
+const CATEGORIES = [
+  'Health & Wellness',
+  'Real Estate',
+  'Technology',
+  'Beauty & Fitness',
+  'Home Services',
+  'Creative & Media',
+  'Retail',
+  'Food & Beverage',
+  'Insurance',
+  'Dental & Medical',
+  'Property Management',
+  'Financial Advisors',
+  'Veterinary',
+  'Legal (Solo/Small)',
+];
+
 const STATUS_OPTIONS = [
   'Not Contacted',
   'Email 1 Sent',
@@ -48,6 +65,15 @@ export default function LeadTable(_props: Props) {
   const [timelineLeadId, setTimelineLeadId] = useState<string | null>(null);
   const [contactFormOnly, setContactFormOnly] = useState(false);
   const fetchIdRef = useRef(0);
+
+  // Discover state
+  const [discoverOpen, setDiscoverOpen] = useState(false);
+  const [discoverQuery, setDiscoverQuery] = useState('');
+  const [discoverLocation, setDiscoverLocation] = useState('San Diego, CA');
+  const [discoverCategory, setDiscoverCategory] = useState('');
+  const [discoverLoading, setDiscoverLoading] = useState(false);
+  const [discoverResult, setDiscoverResult] = useState<{ discovered: number; imported: number; skipped: number; remaining_searches: number | null } | null>(null);
+  const [searchesRemaining, setSearchesRemaining] = useState<number | null>(null);
 
   const statusCounts = useMemo(() => {
     const counts = STATUS_OPTIONS.reduce<Record<string, number>>((acc, option) => {
@@ -218,6 +244,51 @@ export default function LeadTable(_props: Props) {
     }
   }
 
+  async function fetchSearchesRemaining() {
+    try {
+      const res = await fetch('/api/discover');
+      if (res.ok) {
+        const data = await res.json();
+        setSearchesRemaining(data.searches_remaining ?? null);
+      }
+    } catch { /* ignore */ }
+  }
+
+  async function runDiscover() {
+    if (!discoverQuery.trim()) return;
+    setDiscoverLoading(true);
+    setDiscoverResult(null);
+    setNotice('');
+    try {
+      const res = await fetch('/api/discover', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          query: discoverQuery.trim(),
+          location: discoverLocation.trim() || 'San Diego, CA',
+          category: discoverCategory || undefined,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setNotice(data.error || 'Discovery failed');
+        return;
+      }
+      const data = await res.json();
+      setDiscoverResult(data);
+      if (data.remaining_searches !== null && data.remaining_searches !== undefined) {
+        setSearchesRemaining(data.remaining_searches);
+      }
+      if (data.imported > 0) {
+        fetchLeads(search);
+      }
+    } catch {
+      setNotice('Network error — could not run discovery');
+    } finally {
+      setDiscoverLoading(false);
+    }
+  }
+
   return (
     <div>
       <div className="toolbar">
@@ -233,7 +304,76 @@ export default function LeadTable(_props: Props) {
         <a href="/crm/import" className="ghost" style={{ padding: '8px 12px', borderRadius: 10, border: '1px dashed var(--accent)' }}>
           Import CSV
         </a>
+        <button
+          className="ghost"
+          style={{ padding: '8px 12px', borderRadius: 10, border: '1px dashed #6366f1', color: '#6366f1' }}
+          onClick={() => { setDiscoverOpen((v) => !v); if (!discoverOpen) fetchSearchesRemaining(); }}
+        >
+          Discover Leads
+        </button>
       </div>
+      {discoverOpen && (
+        <div style={{ margin: '12px 0', padding: 16, borderRadius: 12, border: '1px solid var(--border)', background: 'var(--surface, #fff)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <strong>Discover Leads via Google Maps</strong>
+            {searchesRemaining !== null && (
+              <span style={{ fontSize: 12, color: 'var(--muted)' }}>
+                {searchesRemaining} searches remaining this month
+              </span>
+            )}
+          </div>
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+            <div>
+              <label style={{ fontSize: 12, color: 'var(--muted)', display: 'block', marginBottom: 4 }}>Query</label>
+              <input
+                type="text"
+                placeholder="e.g. dentists, law firms"
+                value={discoverQuery}
+                onChange={(e) => setDiscoverQuery(e.target.value)}
+                style={{ width: 200 }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: 12, color: 'var(--muted)', display: 'block', marginBottom: 4 }}>Location</label>
+              <input
+                type="text"
+                placeholder="San Diego, CA"
+                value={discoverLocation}
+                onChange={(e) => setDiscoverLocation(e.target.value)}
+                style={{ width: 180 }}
+              />
+            </div>
+            <div>
+              <label style={{ fontSize: 12, color: 'var(--muted)', display: 'block', marginBottom: 4 }}>Category</label>
+              <select
+                value={discoverCategory}
+                onChange={(e) => setDiscoverCategory(e.target.value)}
+                style={{ width: 180 }}
+              >
+                <option value="">Auto-detect</option>
+                {CATEGORIES.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            </div>
+            <button
+              onClick={runDiscover}
+              disabled={discoverLoading || !discoverQuery.trim()}
+              style={{ height: 38 }}
+            >
+              {discoverLoading ? 'Searching...' : 'Search'}
+            </button>
+          </div>
+          {discoverResult && (
+            <div style={{ marginTop: 12, padding: '8px 12px', borderRadius: 8, background: discoverResult.imported > 0 ? '#f0fdf4' : '#fef9c3', fontSize: 13 }}>
+              Found <strong>{discoverResult.discovered}</strong> businesses
+              {' — '}
+              <strong>{discoverResult.imported}</strong> new lead{discoverResult.imported !== 1 ? 's' : ''} imported,
+              {' '}{discoverResult.skipped} duplicate{discoverResult.skipped !== 1 ? 's' : ''} skipped.
+            </div>
+          )}
+        </div>
+      )}
       <div className="dashboard-grid">
         <div className="dashboard-card">
           <div className="dashboard-label">Total Leads</div>
