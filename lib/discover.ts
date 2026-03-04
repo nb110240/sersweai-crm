@@ -30,7 +30,6 @@ export async function discoverAndImport(
     city: sl.city || null,
     zip: sl.zip || null,
     website: sl.website || null,
-    phone: sl.phone || null,
     summary: sl.summary || null,
     status: 'Not Contacted',
     source_url: null,
