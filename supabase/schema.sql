@@ -80,3 +80,16 @@ create trigger leads_updated_at
 before update on public.leads
 for each row
 execute procedure public.set_updated_at();
+
+-- Website page view tracking (privacy-safe with hashed IPs)
+create table if not exists public.page_views (
+  id uuid primary key default gen_random_uuid(),
+  path text not null,
+  referrer text,
+  user_agent text,
+  ip_hash text,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists page_views_created_idx on public.page_views (created_at desc);
+create index if not exists page_views_path_idx on public.page_views (path);

@@ -122,6 +122,45 @@ export default function DashboardPage() {
               </div>
             </div>
 
+            {/* Website Traffic */}
+            <div className="card" style={{ padding: '20px 24px', marginBottom: 24 }}>
+              <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 16, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Website Traffic
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 16 }}>
+                <div>
+                  <div style={{ fontSize: 22, fontWeight: 700, color: '#8b5cf6' }}>{stats?.traffic?.viewsToday ?? 0}</div>
+                  <div style={{ fontSize: 11, color: 'var(--muted)' }}>Views Today</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 22, fontWeight: 700, color: '#8b5cf6' }}>{stats?.traffic?.uniqueToday ?? 0}</div>
+                  <div style={{ fontSize: 11, color: 'var(--muted)' }}>Unique Today</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 22, fontWeight: 700, color: '#6366f1' }}>{stats?.traffic?.viewsThisWeek ?? 0}</div>
+                  <div style={{ fontSize: 11, color: 'var(--muted)' }}>Views This Week</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 22, fontWeight: 700, color: '#6366f1' }}>{stats?.traffic?.uniqueThisWeek ?? 0}</div>
+                  <div style={{ fontSize: 11, color: 'var(--muted)' }}>Unique This Week</div>
+                </div>
+              </div>
+              {(stats?.traffic?.topPages || []).length > 0 && (
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Top Pages</div>
+                  {(stats?.traffic?.topPages || []).map((p: any) => (
+                    <div key={p.path} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13, borderBottom: '1px solid var(--border)' }}>
+                      <span style={{ color: 'var(--ink)', fontFamily: 'monospace', fontSize: 12 }}>{p.path}</span>
+                      <span style={{ fontWeight: 600, color: 'var(--ink)' }}>{p.views}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {(stats?.traffic?.topPages || []).length === 0 && (
+                <p style={{ fontSize: 13, color: 'var(--muted)' }}>No page views recorded yet.</p>
+              )}
+            </div>
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
               {/* Funnel */}
               <div className="card" style={{ padding: '20px 24px' }}>
@@ -179,6 +218,48 @@ export default function DashboardPage() {
                         </div>
                         <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>{e.sent_at ? timeAgo(e.sent_at) : '—'}</div>
                       </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Recent Opens */}
+              <div className="card" style={{ padding: '20px 24px' }}>
+                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 16, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Recent Opens
+                </div>
+                {(stats?.recentOpens || []).length === 0 ? (
+                  <p style={{ fontSize: 13, color: 'var(--muted)' }}>No opens tracked yet.</p>
+                ) : (
+                  (stats?.recentOpens || []).map((o: any) => (
+                    <div key={o.lead_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
+                      <div style={{ fontWeight: 600, color: 'var(--ink)' }}>{o.company_name}</div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 6, background: '#fefce8', color: '#a16207', display: 'inline-block' }}>
+                          {TEMPLATE_LABEL[o.template] || o.template || 'Open'}
+                        </div>
+                        <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>{o.opened_at ? timeAgo(o.opened_at) : '—'}</div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Recent Clicks */}
+              <div className="card" style={{ padding: '20px 24px' }}>
+                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 16, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  Recent Clicks
+                </div>
+                {(stats?.recentClicks || []).length === 0 ? (
+                  <p style={{ fontSize: 13, color: 'var(--muted)' }}>No clicks tracked yet.</p>
+                ) : (
+                  (stats?.recentClicks || []).map((c: any) => (
+                    <div key={c.lead_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
+                      <div>
+                        <div style={{ fontWeight: 600, color: 'var(--ink)' }}>{c.company_name}</div>
+                        <div style={{ fontSize: 11, color: 'var(--muted)' }}>{c.url_hostname}</div>
+                      </div>
+                      <div style={{ fontSize: 11, color: 'var(--muted)' }}>{c.clicked_at ? timeAgo(c.clicked_at) : '—'}</div>
                     </div>
                   ))
                 )}
