@@ -35,21 +35,39 @@ const categoryExamples: Record<string, [string, string]> = {
   'Legal (Solo/Small)': ['client intake + document collection automation', 'case status update + deadline reminder sequences'],
 };
 
+// Category-specific hook questions for email 1
+const categoryHooks: Record<string, string> = {
+  'Health & Wellness':  'do you still handle patient intake and appointment reminders manually',
+  'Real Estate':        'do you still follow up with new leads and schedule showings by hand',
+  'Technology':         'do you still handle support tickets and user onboarding manually',
+  'Beauty & Fitness':   'do you still send booking confirmations and rebook reminders by hand',
+  'Home Services':      'do you still follow up on quotes and chase invoices manually',
+  'Creative & Media':   'do you still collect client assets and send project updates by hand',
+  'Retail':             'do you still send restock alerts and follow up with customers manually',
+  'Food & Beverage':    'do you still handle catering inquiries and reservation confirmations by hand',
+  'Insurance':          'do you still handle policy renewals and quote follow-ups manually',
+  'Dental & Medical':   'do you still handle patient intake forms and appointment reminders by hand',
+  'Property Management':'do you still manage tenant requests and lease renewals manually',
+  'Financial Advisors': 'do you still collect client documents and schedule reviews by hand',
+  'Veterinary':         'do you still send vaccination reminders and appointment confirmations manually',
+  'Legal (Solo/Small)': 'do you still handle client intake and deadline tracking manually',
+};
+
 // A/B subject line variants per template
 const subjectVariants: Record<string, ((firm: string, category: string) => string)[]> = {
   email1: [
-    (firm) => `Quick idea for ${firm}`,
-    (firm) => `A workflow idea for ${firm}`,
+    (firm) => `Quick question for ${firm}`,
+    (firm) => `${firm} — quick idea`,
   ],
   email2: [
-    (firm) => `2 automations that could help ${firm}`,
-    (_firm, category) => `What other ${category} firms are automating`,
+    (firm) => `Thought of something for ${firm}`,
+    (firm) => `Following up — ${firm}`,
   ],
   email3: [
-    (firm) => `Closing the loop — ${firm}`,
+    (firm) => `Last note — ${firm}`,
   ],
   email4: [
-    (firm) => `Still happy to help — ${firm}`,
+    (firm) => `Circling back — ${firm}`,
   ],
 };
 
@@ -82,18 +100,21 @@ export function renderTemplate(lead: Lead, template: TemplateKey, baseUrl: strin
     : `I came across ${firm}${city ? ` in ${city}` : ''} and work with a lot of ${category} firms`;
 
   if (template === 'email1') {
-    const opener = lead.notes?.trim() || (contextLine + '.');
-    const text = `Hi ${firstName},\n\n${opener}\n\nI'm Neil from SersweAI — we're a local San Diego business that helps ${category} firms save time by automating repetitive admin work (intake forms, document collection, client follow-ups, scheduling) using simple AI workflows. For ${category} businesses specifically, we typically build things like ${example1} and ${example2}.\n\nNo new software to learn — we build on top of the tools you already use.\n\nWould you be open to a 30-minute call where I walk through 2–3 automations specific to ${firm}?\n\nYou can see what we do here: ${siteLink}${bookingLink ? `\n\nBook a time: ${bookingLink}` : ''}${footer}`;
+    const hook = categoryHooks[category] || 'do you still handle a lot of admin work manually';
+    const customOpener = lead.notes?.trim();
+    // If we have a custom AI-generated opener, use it + hook. Otherwise just hook.
+    const openingLine = customOpener
+      ? `${customOpener} — ${hook}?`
+      : `I came across ${firm}${city ? ` in ${city}` : ''} — ${hook}?`;
+
+    const text = `Hi ${firstName},\n\n${openingLine}\n\nI'm Neil, based in San Diego. I build simple automations that handle that kind of work automatically — no new software, just connects to what you already use.\n\nHappy to show you a quick example if you're curious.${footer}`;
 
     const html = `
       <p>Hi ${firstName},</p>
-      <p>${opener}</p>
-      <p>I'm Neil from SersweAI — we're a local San Diego business that helps ${category} firms save time by automating repetitive admin work (intake forms, document collection, client follow-ups, scheduling) using simple AI workflows. For ${category} businesses specifically, we typically build things like ${example1} and ${example2}.</p>
-      <p>No new software to learn — we build on top of the tools you already use.</p>
-      <p>Would you be open to a 30-minute call where I walk through 2–3 automations specific to ${firm}?</p>
-      <p>You can see what we do here: <a href="${siteLink}">sersweai.com</a></p>
-      ${bookingLink ? `<p>Book a time: <a href="${bookingLink}">${bookingUrl}</a></p>` : ''}
-      <p>— ${senderName}<br/>${senderEmail}<br/><a href="${siteLink}">sersweai.com</a></p>
+      <p>${openingLine}</p>
+      <p>I'm Neil, based in San Diego. I build simple automations that handle that kind of work automatically — no new software, just connects to what you already use.</p>
+      <p>Happy to show you a quick example if you're curious.</p>
+      <p>— Neil<br/>${senderEmail}</p>
       <p style="font-size:12px;color:#999;">If you'd prefer not to hear from me, reply "unsubscribe."</p>
       <img src="${trackingPixel}" width="1" height="1" alt="" />
     `;
@@ -101,20 +122,17 @@ export function renderTemplate(lead: Lead, template: TemplateKey, baseUrl: strin
   }
 
   if (template === 'email2') {
-    const text = `Hi ${firstName},\n\nFollowing up — here are two workflows we've built for other ${category} firms in San Diego that have made a real difference:\n\n1) Smart intake + routing: new inquiries are captured, key details extracted, and routed to the right person automatically.\n2) Document collection + auto-reminders: clients get a simple upload link with automatic follow-ups until everything is in.\n\nFor ${category} businesses specifically, we also build things like ${example1} and ${example2}.\n\nI'd love to spend 30 minutes mapping out how these could work for ${firm} specifically — no strings attached.\n\nSee examples on our site: ${siteLink}${bookingLink ? `\n\nGrab a time here: ${bookingLink}` : ''}${footer}`;
+    const text = `Hi ${firstName},\n\nJust following up — I had a specific idea for ${firm}.\n\nA lot of ${category} businesses I work with waste hours on ${example1.split('+')[0].trim().toLowerCase()}. I recently built a workflow that handles it automatically — took about a week and saved the owner ~10 hours/month.\n\nI also build lead generation systems that find and reach new prospects on autopilot — same idea, no extra software.\n\nWould either of those be useful for you? Happy to walk through it — takes 15 minutes.\n\nYou can see examples here: ${siteLink}${bookingLink ? `\n\nOr grab a time: ${bookingLink}` : ''}${footer}`;
 
     const html = `
       <p>Hi ${firstName},</p>
-      <p>Following up — here are two workflows we've built for other ${category} firms in San Diego that have made a real difference:</p>
-      <ol>
-        <li><strong>Smart intake + routing:</strong> new inquiries are captured, key details extracted, and routed to the right person automatically.</li>
-        <li><strong>Document collection + auto-reminders:</strong> clients get a simple upload link with automatic follow-ups until everything is in.</li>
-      </ol>
-      <p>For ${category} businesses specifically, we also build things like ${example1} and ${example2}.</p>
-      <p>I'd love to spend 30 minutes mapping out how these could work for ${firm} specifically — no strings attached.</p>
-      <p>See examples on our site: <a href="${siteLink}">sersweai.com</a></p>
-      ${bookingLink ? `<p>Grab a time here: <a href="${bookingLink}">${bookingUrl}</a></p>` : ''}
-      <p>— ${senderName}<br/>${senderEmail}<br/><a href="${siteLink}">sersweai.com</a></p>
+      <p>Just following up — I had a specific idea for ${firm}.</p>
+      <p>A lot of ${category} businesses I work with waste hours on ${example1.split('+')[0].trim().toLowerCase()}. I recently built a workflow that handles it automatically — took about a week and saved the owner ~10 hours/month.</p>
+      <p>I also build lead generation systems that find and reach new prospects on autopilot — same idea, no extra software.</p>
+      <p>Would either of those be useful for you? Happy to walk through it — takes 15 minutes.</p>
+      <p>You can see examples here: <a href="${siteLink}">sersweai.com</a></p>
+      ${bookingLink ? `<p>Or grab a time: <a href="${bookingLink}">${bookingUrl}</a></p>` : ''}
+      <p>— Neil<br/>${senderEmail}</p>
       <p style="font-size:12px;color:#999;">If you'd prefer not to hear from me, reply "unsubscribe."</p>
       <img src="${trackingPixel}" width="1" height="1" alt="" />
     `;
@@ -122,16 +140,13 @@ export function renderTemplate(lead: Lead, template: TemplateKey, baseUrl: strin
   }
 
   if (template === 'email4') {
-    const text = `Hi ${firstName},\n\nI reached out a few weeks ago about automating some of the admin work at ${firm}.\n\nNo worries if the timing wasn't right — just wanted to let you know the offer still stands.\n\nIf you ever want a quick walkthrough of what automation could look like for ${firm}, I'm here.\n\nYou can see what we do here: ${siteLink}${bookingLink ? `\n\nBook a time: ${bookingLink}` : ''}${footer}`;
+    const text = `Hi ${firstName},\n\nCircling back one more time — I know timing is everything.\n\nIf ${firm} ever needs help automating the busywork or generating new leads on autopilot, I'm around. Just reply to this email.\n\n— Neil${footer}`;
 
     const html = `
       <p>Hi ${firstName},</p>
-      <p>I reached out a few weeks ago about automating some of the admin work at ${firm}.</p>
-      <p>No worries if the timing wasn't right — just wanted to let you know the offer still stands.</p>
-      <p>If you ever want a quick walkthrough of what automation could look like for ${firm}, I'm here.</p>
-      <p>You can see what we do here: <a href="${siteLink}">sersweai.com</a></p>
-      ${bookingLink ? `<p>Book a time: <a href="${bookingLink}">${bookingUrl}</a></p>` : ''}
-      <p>— ${senderName}<br/>${senderEmail}<br/><a href="${siteLink}">sersweai.com</a></p>
+      <p>Circling back one more time — I know timing is everything.</p>
+      <p>If ${firm} ever needs help automating the busywork or generating new leads on autopilot, I'm around. Just reply to this email.</p>
+      <p>— Neil</p>
       <p style="font-size:12px;color:#999;">If you'd prefer not to hear from me, reply "unsubscribe."</p>
       <img src="${trackingPixel}" width="1" height="1" alt="" />
     `;
@@ -139,15 +154,13 @@ export function renderTemplate(lead: Lead, template: TemplateKey, baseUrl: strin
   }
 
   // email3 (default)
-  const text = `Hi ${firstName},\n\nJust one last note. I know things get busy, so no worries if now isn't the right time.\n\nI'm based in San Diego and work with a lot of local ${category} businesses — if you're curious what AI automation could look like for ${firm}, I'm happy to put together a quick 1-page workflow suggestion at no charge.\n\nJust reply or book 30 minutes here: ${bookingLink || siteLink}\n\nEither way, you can always check out what we do at: ${siteLink}${footer}`;
+  const text = `Hi ${firstName},\n\nLast note from me — no worries if this isn't a priority right now.\n\nI put together a quick idea for how ${firm} could automate some of the repetitive work and bring in new leads automatically${city ? ` — happy to send it over if you're curious` : ''}. No call needed, just reply and I'll share it.\n\n— Neil${footer}`;
 
   const html = `
     <p>Hi ${firstName},</p>
-    <p>Just one last note. I know things get busy, so no worries if now isn't the right time.</p>
-    <p>I'm based in San Diego and work with a lot of local ${category} businesses — if you're curious what AI automation could look like for ${firm}, I'm happy to put together a quick 1-page workflow suggestion at no charge.</p>
-    <p>Just reply or book 30 minutes here: <a href="${bookingLink || siteLink}">${bookingLink ? bookingUrl : 'sersweai.com'}</a></p>
-    <p>Either way, you can always check out what we do at: <a href="${siteLink}">sersweai.com</a></p>
-    <p>— ${senderName}<br/>${senderEmail}<br/><a href="${siteLink}">sersweai.com</a></p>
+    <p>Last note from me — no worries if this isn't a priority right now.</p>
+    <p>I put together a quick idea for how ${firm} could automate some of the repetitive work and bring in new leads automatically${city ? ` — happy to send it over if you're curious` : ''}. No call needed, just reply and I'll share it.</p>
+    <p>— Neil</p>
     <p style="font-size:12px;color:#999;">If you'd prefer not to hear from me, reply "unsubscribe."</p>
     <img src="${trackingPixel}" width="1" height="1" alt="" />
   `;

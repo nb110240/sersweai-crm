@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
   }
 
   const baseUrl = process.env.APP_BASE_URL || 'http://localhost:3000';
-  const senderName = process.env.SENDER_NAME || 'SersweAI';
+  const senderName = process.env.SENDER_NAME || 'Neil';
   const fromEmail = 'auto@sersweai.com';
   const resendApiKey = process.env.RESEND_API_KEY || '';
 
