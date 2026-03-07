@@ -9,6 +9,31 @@ export type DiscoverResult = {
   enriched: number;
 };
 
+const COMMON_NAMES = new Set(
+  'aaron adam alan albert alex alexander alfred alice amanda amber amy andrea andrew angela ann anna anne anthony arthur ashley barbara benjamin beth betty beverly bill bob bonnie brad brandon brenda brian bruce carl carol caroline catherine charles charlotte cheryl chris christian christina christine christopher cindy claire craig crystal cynthia dale dan daniel danny darren dave david dawn dean debbie deborah debra dennis diana diane don donald donna dorothy doug douglas earl ed edward eileen elaine elizabeth ellen emily eric erik ernest eugene eva evelyn florence forest frances francis frank fred frederick gail gary george gerald gloria gordon grace greg gregory gretchen harold harry heather helen henry howard jack jacqueline james jamie jane janet janice jason jean jeff jeffrey jennifer jeremy jerry jessica jill jim jimmy joan joanne joe john jonathan joseph joshua joyce judith judy julia julie justin karen karl kate katherine kathleen kathy katie keith kelly ken kenneth kevin kim kimberly kirk kurt kyle larry laura lauren lawrence lee leonard leslie lillian linda lisa lois lori louis louise luke lynn margaret maria marie marilyn mark martha martin mary matthew maureen max melissa michael michele michelle mike mildred mitchell monica nancy nathan neil nicholas nicole norma norman pam pamela pat patricia patrick paul paula peggy penny peter philip phillip phyllis rachel ralph randy ray raymond rebecca renee richard rick rita rob robert robin roger ron ronald rose roy russell ruth ryan sally sam samuel sandra sara sarah scott sean sharon shawn sheila sherry shirley stacy stanley stephanie stephen steve steven stewart stuart sue susan suzanne tammy teresa terri terry theresa thomas tim timothy tina todd tom tony tracy troy tyler valerie vernon vicki victoria vincent virginia walter wanda warren wayne wendy wesley william willie winnie'.split(' ')
+);
+
+function extractFirstName(email: string | null, companyName: string): string | null {
+  // Try email prefix first
+  if (email && email.includes('@')) {
+    const prefix = email.split('@')[0].toLowerCase().replace(/\d+/g, '');
+    const parts = prefix.split(/[._\-]/);
+    const candidate = parts[0];
+    if (candidate && candidate.length > 2 && COMMON_NAMES.has(candidate)) {
+      return candidate.charAt(0).toUpperCase() + candidate.slice(1);
+    }
+  }
+  // Try company name patterns like "Law Office of Christine Padilla"
+  const patterns = [/(?:Law\s+(?:Office|Firm)\s+of\s+)(\w+)/i, /(?:Offices\s+of\s+)(\w+)/i];
+  for (const p of patterns) {
+    const m = companyName.match(p);
+    if (m && m[1] && COMMON_NAMES.has(m[1].toLowerCase()) && m[1].length > 2) {
+      return m[1].charAt(0).toUpperCase() + m[1].slice(1).toLowerCase();
+    }
+  }
+  return null;
+}
+
 /**
  * Shared discovery logic: search SerpAPI, dedup against existing leads, upsert new ones.
  * Used by both the manual /api/discover and the /api/discover/webhook endpoints.
@@ -67,6 +92,13 @@ export async function discoverAndImport(
         }
       }
     });
+  }
+
+  // 2c. Extract first names from emails and company names
+  for (const row of rows) {
+    if (!row.first_name) {
+      row.first_name = extractFirstName(row.email, row.company_name);
+    }
   }
 
   const supabase = getSupabase();
