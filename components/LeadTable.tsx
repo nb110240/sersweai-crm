@@ -75,6 +75,10 @@ export default function LeadTable(_props: Props) {
   const [discoverResult, setDiscoverResult] = useState<{ discovered: number; imported: number; skipped: number; remaining_searches: number | null } | null>(null);
   const [searchesRemaining, setSearchesRemaining] = useState<number | null>(null);
 
+  // Enrich state
+  const [enrichingLeads, setEnrichingLeads] = useState<Record<string, boolean>>({});
+  const [enrichingAll, setEnrichingAll] = useState(false);
+
   const statusCounts = useMemo(() => {
     const counts = STATUS_OPTIONS.reduce<Record<string, number>>((acc, option) => {
       acc[option] = 0;
@@ -289,6 +293,70 @@ export default function LeadTable(_props: Props) {
     }
   }
 
+  async function enrichSingleLead(leadId: string) {
+    setEnrichingLeads((prev) => ({ ...prev, [leadId]: true }));
+    setNotice('');
+    try {
+      const res = await fetch('/api/enrich', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lead_ids: [leadId] }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setNotice(data.error || 'Enrichment failed');
+        return;
+      }
+      const data = await res.json();
+      if (data.enriched > 0) {
+        setNotice('Lead enriched with personalized opener!');
+        fetchLeads(search);
+      } else {
+        setNotice('Could not enrich — no website or content found.');
+      }
+    } catch {
+      setNotice('Network error — could not enrich lead');
+    } finally {
+      setEnrichingLeads((prev) => {
+        const next = { ...prev };
+        delete next[leadId];
+        return next;
+      });
+    }
+  }
+
+  async function enrichNotContacted() {
+    const targets = leads.filter(
+      (l) => (l.status === 'Not Contacted') && l.website && !l.notes
+    );
+    if (targets.length === 0) {
+      setNotice('No un-enriched "Not Contacted" leads with websites found.');
+      return;
+    }
+    const batch = targets.slice(0, 20);
+    setEnrichingAll(true);
+    setNotice(`Enriching ${batch.length} leads...`);
+    try {
+      const res = await fetch('/api/enrich', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lead_ids: batch.map((l) => l.id) }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setNotice(data.error || 'Bulk enrichment failed');
+        return;
+      }
+      const data = await res.json();
+      setNotice(`Enriched ${data.enriched} leads, ${data.skipped} skipped, ${data.failed} failed.`);
+      if (data.enriched > 0) fetchLeads(search);
+    } catch {
+      setNotice('Network error — could not enrich leads');
+    } finally {
+      setEnrichingAll(false);
+    }
+  }
+
   return (
     <div>
       <div className="toolbar">
@@ -310,6 +378,14 @@ export default function LeadTable(_props: Props) {
           onClick={() => { setDiscoverOpen((v) => !v); if (!discoverOpen) fetchSearchesRemaining(); }}
         >
           Discover Leads
+        </button>
+        <button
+          className="ghost"
+          style={{ padding: '8px 12px', borderRadius: 10, border: '1px dashed #f59e0b', color: '#f59e0b' }}
+          onClick={enrichNotContacted}
+          disabled={enrichingAll}
+        >
+          {enrichingAll ? 'Enriching...' : 'Enrich All'}
         </button>
       </div>
       {discoverOpen && (
@@ -509,10 +585,25 @@ export default function LeadTable(_props: Props) {
                     </div>
                   </td>
                   <td style={{ maxWidth: 280 }}>
+                    {lead.notes && (
+                      <div style={{ fontSize: 12, color: '#f59e0b', fontWeight: 500, marginBottom: 4 }}>
+                        {lead.notes}
+                      </div>
+                    )}
                     {lead.summary || '—'}
                   </td>
                   <td>
                     <div className="row-actions">
+                      {lead.website && !lead.notes && (
+                        <button
+                          onClick={() => enrichSingleLead(lead.id)}
+                          className="secondary"
+                          disabled={!!enrichingLeads[lead.id]}
+                          style={{ color: '#f59e0b', borderColor: '#fde68a' }}
+                        >
+                          {enrichingLeads[lead.id] ? 'Enriching...' : 'Enrich'}
+                        </button>
+                      )}
                       <button
                         onClick={() => sendEmail(lead.id, 'email1')}
                         className="secondary"
