@@ -99,6 +99,15 @@ export function renderTemplate(lead: Lead, template: TemplateKey, baseUrl: strin
     ? `I came across ${firm} and noticed ${summaryClean.toLowerCase().startsWith('they') || summaryClean.toLowerCase().startsWith('the') ? summaryClean.charAt(0).toLowerCase() + summaryClean.slice(1) : `that you ${summaryClean.charAt(0).toLowerCase() + summaryClean.slice(1)}`}`
     : `I came across ${firm}${city ? ` in ${city}` : ''} and work with a lot of ${category} firms`;
 
+  // Parse enrichment details from summary (format: "Services: X | Stack: Y | Customers: Z | Opportunity: W")
+  const enriched = {
+    services: summary?.match(/Services:\s*([^|]+)/i)?.[1]?.trim() || '',
+    stack: summary?.match(/Stack:\s*([^|]+)/i)?.[1]?.trim() || '',
+    customers: summary?.match(/Customers:\s*([^|]+)/i)?.[1]?.trim() || '',
+    opportunity: summary?.match(/Opportunity:\s*([^|]+)/i)?.[1]?.trim() || '',
+  };
+  const hasEnrichment = !!(enriched.services || enriched.opportunity);
+
   if (template === 'email1') {
     const hook = categoryHooks[category] || 'do you still handle a lot of admin work manually';
     const customOpener = lead.notes?.trim();
@@ -122,12 +131,20 @@ export function renderTemplate(lead: Lead, template: TemplateKey, baseUrl: strin
   }
 
   if (template === 'email2') {
-    const text = `Hi ${firstName},\n\nJust following up — I had a specific idea for ${firm}.\n\nA lot of ${category} businesses I work with waste hours on ${example1.split('+')[0].trim().toLowerCase()}. I recently built a workflow that handles it automatically — took about a week and saved the owner ~10 hours/month.\n\nI also build lead generation systems that find and reach new prospects on autopilot — same idea, no extra software.\n\nWould either of those be useful for you? Happy to walk through it — takes 15 minutes.\n\nYou can see examples here: ${siteLink}${bookingLink ? `\n\nOr grab a time: ${bookingLink}` : ''}${footer}`;
+    const ideaLine = hasEnrichment && enriched.opportunity
+      ? `I was thinking about ${firm} and noticed ${enriched.opportunity.toLowerCase()}. I recently built a workflow for a similar ${category.toLowerCase()} business that handles exactly that — took about a week and saved them ~10 hours/month.`
+      : `A lot of ${category} businesses I work with waste hours on ${example1.split('+')[0].trim().toLowerCase()}. I recently built a workflow that handles it automatically — took about a week and saved the owner ~10 hours/month.`;
+
+    const stackLine = hasEnrichment && enriched.stack && enriched.stack !== 'unknown'
+      ? ` It connects directly to tools like ${enriched.stack} — no new software needed.`
+      : '';
+
+    const text = `Hi ${firstName},\n\nJust following up — I had a specific idea for ${firm}.\n\n${ideaLine}${stackLine}\n\nI also build lead generation systems that find and reach new prospects on autopilot — same idea, no extra software.\n\nWould either of those be useful for you? Happy to walk through it — takes 15 minutes.\n\nYou can see examples here: ${siteLink}${bookingLink ? `\n\nOr grab a time: ${bookingLink}` : ''}${footer}`;
 
     const html = `
       <p>Hi ${firstName},</p>
       <p>Just following up — I had a specific idea for ${firm}.</p>
-      <p>A lot of ${category} businesses I work with waste hours on ${example1.split('+')[0].trim().toLowerCase()}. I recently built a workflow that handles it automatically — took about a week and saved the owner ~10 hours/month.</p>
+      <p>${ideaLine}${stackLine}</p>
       <p>I also build lead generation systems that find and reach new prospects on autopilot — same idea, no extra software.</p>
       <p>Would either of those be useful for you? Happy to walk through it — takes 15 minutes.</p>
       <p>You can see examples here: <a href="${siteLink}">sersweai.com</a></p>
@@ -140,12 +157,16 @@ export function renderTemplate(lead: Lead, template: TemplateKey, baseUrl: strin
   }
 
   if (template === 'email4') {
-    const text = `Hi ${firstName},\n\nCircling back one more time — I know timing is everything.\n\nIf ${firm} ever needs help automating the busywork or generating new leads on autopilot, I'm around. Just reply to this email.\n\n— Neil${footer}`;
+    const e4Line = hasEnrichment && enriched.customers
+      ? `If you ever want to spend less time on admin and more time with ${enriched.customers.toLowerCase()}, I'm around.`
+      : `If ${firm} ever needs help automating the busywork or generating new leads on autopilot, I'm around.`;
+
+    const text = `Hi ${firstName},\n\nCircling back one more time — I know timing is everything.\n\n${e4Line} Just reply to this email.\n\n— Neil${footer}`;
 
     const html = `
       <p>Hi ${firstName},</p>
       <p>Circling back one more time — I know timing is everything.</p>
-      <p>If ${firm} ever needs help automating the busywork or generating new leads on autopilot, I'm around. Just reply to this email.</p>
+      <p>${e4Line} Just reply to this email.</p>
       <p>— Neil<br/><a href="${siteLink}">sersweai.com</a></p>
       <p style="font-size:12px;color:#999;">If you'd prefer not to hear from me, reply "unsubscribe."</p>
       <img src="${trackingPixel}" width="1" height="1" alt="" />
@@ -154,12 +175,16 @@ export function renderTemplate(lead: Lead, template: TemplateKey, baseUrl: strin
   }
 
   // email3 (default)
-  const text = `Hi ${firstName},\n\nLast note from me — no worries if this isn't a priority right now.\n\nI put together a quick idea for how ${firm} could automate some of the repetitive work and bring in new leads automatically${city ? ` — happy to send it over if you're curious` : ''}. No call needed, just reply and I'll share it.\n\n— Neil${footer}`;
+  const e3Specific = hasEnrichment && enriched.services
+    ? `I sketched out a quick idea for how ${firm} could automate part of your ${enriched.services.split(',')[0].trim().toLowerCase()} workflow and free up a few hours a week`
+    : `I put together a quick idea for how ${firm} could automate some of the repetitive work and bring in new leads automatically`;
+
+  const text = `Hi ${firstName},\n\nLast note from me — no worries if this isn't a priority right now.\n\n${e3Specific}. No call needed, just reply and I'll share it.\n\n— Neil${footer}`;
 
   const html = `
     <p>Hi ${firstName},</p>
     <p>Last note from me — no worries if this isn't a priority right now.</p>
-    <p>I put together a quick idea for how ${firm} could automate some of the repetitive work and bring in new leads automatically${city ? ` — happy to send it over if you're curious` : ''}. No call needed, just reply and I'll share it.</p>
+    <p>${e3Specific}. No call needed, just reply and I'll share it.</p>
     <p>— Neil<br/><a href="${siteLink}">sersweai.com</a></p>
     <p style="font-size:12px;color:#999;">If you'd prefer not to hear from me, reply "unsubscribe."</p>
     <img src="${trackingPixel}" width="1" height="1" alt="" />
