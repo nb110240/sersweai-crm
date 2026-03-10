@@ -2,8 +2,12 @@ import { NextResponse } from 'next/server';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
+// IMPORTANT: The live homepage is public/marketing.html (light theme).
+// Do NOT change this to index.html or any other file — that is the dark theme used for presentations only.
+const HOMEPAGE_FILE = 'public/marketing.html';
+
 export async function GET() {
-  let html = readFileSync(join(process.cwd(), 'public/marketing.html'), 'utf-8');
+  let html = readFileSync(join(process.cwd(), HOMEPAGE_FILE), 'utf-8');
 
   // Inject pageview tracking beacon
   const trackingScript = `<script>

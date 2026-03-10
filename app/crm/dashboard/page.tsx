@@ -101,7 +101,8 @@ export default function DashboardPage() {
               <StatCard label="Total Leads" value={totalLeads} sub={`${stats?.leads?.withEmail || 0} have email`} color="var(--accent)" />
               <StatCard label="Added Today" value={stats?.leads?.addedToday || 0} sub="from lead gen" color="#6366f1" />
               <StatCard label="Emails Sent Today" value={`${sentToday} / ${dailyLimit}`} sub={`${pct}% of daily quota`} color="#f97316" />
-              <StatCard label="Sent This Week" value={stats?.emails?.sentThisWeek || 0} sub={`Email 1: ${stats?.emails?.byTemplate?.email1 || 0}  ·  2: ${stats?.emails?.byTemplate?.email2 || 0}  ·  3: ${stats?.emails?.byTemplate?.email3 || 0}`} color="#3b82f6" />
+              <StatCard label="Sent This Week" value={stats?.emails?.sentThisWeek || 0} sub={`Mon–Sun · Email 1: ${stats?.emails?.byTemplate?.email1 || 0}  ·  2: ${stats?.emails?.byTemplate?.email2 || 0}  ·  3: ${stats?.emails?.byTemplate?.email3 || 0}`} color="#3b82f6" />
+              <StatCard label="Total Emails Sent" value={stats?.emails?.totalSent || 0} sub="all time" color="#8b5cf6" />
               <StatCard label="Replied" value={stats?.leads?.byStatus?.['Replied'] || 0} sub={totalLeads ? `${Math.round(((stats?.leads?.byStatus?.['Replied'] || 0) / totalLeads) * 100)}% reply rate` : '—'} color="#22c55e" />
             </div>
 

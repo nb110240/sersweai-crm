@@ -114,7 +114,7 @@ export function renderTemplate(lead: Lead, template: TemplateKey, baseUrl: strin
       <p>${openingLine}</p>
       <p>I'm Neil, based in San Diego. I build simple automations that handle that kind of work automatically — no new software, just connects to what you already use.</p>
       <p>Happy to show you a quick example if you're curious.</p>
-      <p>— Neil<br/>${senderEmail}</p>
+      <p>— Neil<br/>${senderEmail}<br/><a href="${siteLink}">sersweai.com</a></p>
       <p style="font-size:12px;color:#999;">If you'd prefer not to hear from me, reply "unsubscribe."</p>
       <img src="${trackingPixel}" width="1" height="1" alt="" />
     `;
@@ -146,7 +146,7 @@ export function renderTemplate(lead: Lead, template: TemplateKey, baseUrl: strin
       <p>Hi ${firstName},</p>
       <p>Circling back one more time — I know timing is everything.</p>
       <p>If ${firm} ever needs help automating the busywork or generating new leads on autopilot, I'm around. Just reply to this email.</p>
-      <p>— Neil</p>
+      <p>— Neil<br/><a href="${siteLink}">sersweai.com</a></p>
       <p style="font-size:12px;color:#999;">If you'd prefer not to hear from me, reply "unsubscribe."</p>
       <img src="${trackingPixel}" width="1" height="1" alt="" />
     `;
@@ -160,7 +160,7 @@ export function renderTemplate(lead: Lead, template: TemplateKey, baseUrl: strin
     <p>Hi ${firstName},</p>
     <p>Last note from me — no worries if this isn't a priority right now.</p>
     <p>I put together a quick idea for how ${firm} could automate some of the repetitive work and bring in new leads automatically${city ? ` — happy to send it over if you're curious` : ''}. No call needed, just reply and I'll share it.</p>
-    <p>— Neil</p>
+    <p>— Neil<br/><a href="${siteLink}">sersweai.com</a></p>
     <p style="font-size:12px;color:#999;">If you'd prefer not to hear from me, reply "unsubscribe."</p>
     <img src="${trackingPixel}" width="1" height="1" alt="" />
   `;

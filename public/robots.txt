@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /crm
+Disallow: /api
+
+Sitemap: https://sersweai.com/sitemap.xml

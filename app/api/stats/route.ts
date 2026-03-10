@@ -25,12 +25,19 @@ export async function GET(req: NextRequest) {
   const abs = String(Math.abs(offsetHours)).padStart(2, '0');
   const todayMidnightPT = new Date(`${ptDate}T00:00:00${sign}${abs}:00`);
 
+  // Monday of the current week (PT)
+  const todayPTDate = new Date(todayMidnightPT);
+  const dayOfWeek = todayPTDate.getUTCDay(); // 0=Sun,1=Mon,...
+  const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  const mondayMidnightPT = new Date(todayMidnightPT.getTime() - daysSinceMonday * 86_400_000);
+
   const weekAgo = new Date(Date.now() - 7 * 86_400_000);
 
   const [
     { data: leads },
     { data: emailsToday },
     { data: emailsWeek },
+    { count: totalEmailsSent },
     { data: recentEmails },
     { data: rawOpens },
     { data: rawClicks },
@@ -39,7 +46,8 @@ export async function GET(req: NextRequest) {
   ] = await Promise.all([
     supabase.from('leads').select('id, status, email, created_at'),
     supabase.from('emails').select('id, template').gte('sent_at', todayMidnightPT.toISOString()),
-    supabase.from('emails').select('id, template').gte('sent_at', weekAgo.toISOString()),
+    supabase.from('emails').select('id, template').gte('sent_at', mondayMidnightPT.toISOString()),
+    supabase.from('emails').select('*', { count: 'exact', head: true }).not('sent_at', 'is', null),
     supabase
       .from('emails')
       .select('id, template, sent_at, to_email, leads(company_name, category)')
@@ -141,6 +149,7 @@ export async function GET(req: NextRequest) {
     emails: {
       sentToday: emailsToday?.length || 0,
       sentThisWeek: emailsWeek?.length || 0,
+      totalSent: totalEmailsSent || 0,
       byTemplate: emailsByTemplate,
       recent: recentEmails || [],
     },

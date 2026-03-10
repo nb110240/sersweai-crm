@@ -97,7 +97,7 @@ export async function discoverAndImport(
   // 2c. Extract first names from emails and company names
   for (const row of rows) {
     if (!row.first_name) {
-      row.first_name = extractFirstName(row.email, row.company_name);
+      (row as any).first_name = extractFirstName(row.email, row.company_name);
     }
   }
 
