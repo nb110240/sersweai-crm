@@ -1363,7 +1363,6 @@ footer {
     <li><a href="#services">Services</a></li>
     <li><a href="/team.html">Team</a></li>
     <li><a href="#why">Why Us</a></li>
-    <li><a href="#case-study">Results</a></li>
     <li><a href="#calculator">Calculator</a></li>
     <li><a href="#contact">Contact</a></li>
   </ul>
@@ -1379,7 +1378,6 @@ footer {
   <a href="#services" onclick="closeMobile()">Services</a>
   <a href="/team.html">Team</a>
   <a href="#why" onclick="closeMobile()">Why Us</a>
-  <a href="#case-study" onclick="closeMobile()">Results</a>
   <a href="#calculator" onclick="closeMobile()">Calculator</a>
   <a href="#contact" onclick="closeMobile()">Contact</a>
 </div>
@@ -1580,223 +1578,6 @@ footer {
     </div>
   </div>
 </section>
-
-<!-- CASE STUDY -->
-<div class="section-divider"></div>
-<section class="case-study" id="case-study">
-  <div class="container">
-    <div class="case-study-header reveal">
-      <p class="section-label"><span class="section-number">05</span>CASE STUDY</p>
-      <h2 class="section-title">Real Results, Real Business</h2>
-    </div>
-    <div class="case-study-card reveal">
-      <div class="case-study-badge">AI Content Creation</div>
-      <h3 class="case-study-name">Daily Content Pipeline for a Growing Brand</h3>
-      <p class="case-study-context">A business needed consistent, on-brand content published daily across platforms &mdash; but didn't have the time or staff to keep up. Content was inconsistent, often weeks late, and the brand was losing visibility.</p>
-
-      <div class="case-study-grid">
-        <div class="case-study-col">
-          <h4 class="case-study-col-title">The Problem</h4>
-          <ul class="case-study-list">
-            <li>Content took 2&ndash;3 hours per post to research, write, and publish</li>
-            <li>Missed posting schedules regularly</li>
-            <li>No consistent brand voice across channels</li>
-            <li>Staff pulled away from revenue-generating work to create content</li>
-          </ul>
-        </div>
-        <div class="case-study-col">
-          <h4 class="case-study-col-title">What We Built</h4>
-          <ul class="case-study-list">
-            <li>AI content agents trained on their brand voice and industry</li>
-            <li>Automated research, writing, and headline generation</li>
-            <li>Scheduled publishing across all platforms</li>
-            <li>Human review step before anything goes live</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="case-study-results">
-        <div class="case-study-stat">
-          <span class="case-study-stat-number">416+</span>
-          <span class="case-study-stat-label">Hours Saved Per Year</span>
-        </div>
-        <div class="case-study-stat">
-          <span class="case-study-stat-number">7x</span>
-          <span class="case-study-stat-label">More Content Output</span>
-        </div>
-        <div class="case-study-stat">
-          <span class="case-study-stat-number">$20,800+</span>
-          <span class="case-study-stat-label">Annual Value Created</span>
-        </div>
-        <div class="case-study-stat">
-          <span class="case-study-stat-number">0</span>
-          <span class="case-study-stat-label">Missed Publishing Days</span>
-        </div>
-      </div>
-
-      <blockquote class="case-study-quote">
-        <p>&ldquo;We went from struggling to post once a week to publishing daily without lifting a finger. The system pays for itself many times over.&rdquo;</p>
-      </blockquote>
-    </div>
-
-    <div style="text-align:center; margin-top:3rem;" class="reveal">
-      <a href="#contact" class="hero-cta" style="opacity:1; transform:none;">
-        Get Results Like This
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      </a>
-    </div>
-  </div>
-</section>
-
-<style>
-/* ─── CASE STUDY ─── */
-.case-study { padding: 8rem 0; }
-
-.case-study-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  padding: 3rem;
-  max-width: 860px;
-  margin: 0 auto;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
-.case-study-card:hover {
-  border-color: var(--border-accent);
-  box-shadow: 0 4px 40px rgba(15,93,92,0.05);
-}
-
-.case-study-badge {
-  display: inline-block;
-  font-family: var(--mono);
-  font-size: 0.65rem;
-  font-weight: 500;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--accent);
-  background: var(--accent-dim);
-  border: 1px solid var(--border-accent);
-  padding: 0.35rem 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.case-study-name {
-  font-family: var(--serif);
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 1rem;
-  line-height: 1.2;
-}
-
-.case-study-context {
-  font-family: var(--sans);
-  font-size: 1rem;
-  font-weight: 300;
-  color: var(--text-2);
-  line-height: 1.75;
-  margin-bottom: 2.5rem;
-  max-width: 700px;
-}
-
-.case-study-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3rem;
-  margin-bottom: 2.5rem;
-}
-
-.case-study-col-title {
-  font-family: var(--mono);
-  font-size: 0.7rem;
-  font-weight: 500;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 1rem;
-}
-
-.case-study-list {
-  list-style: none;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.case-study-list li {
-  font-family: var(--sans);
-  font-size: 0.92rem;
-  font-weight: 300;
-  color: var(--text-2);
-  padding-left: 1.25rem;
-  position: relative;
-  line-height: 1.6;
-}
-
-.case-study-list li::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0.55em;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent);
-  opacity: 0.4;
-}
-
-.case-study-results {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.5rem;
-  padding: 2rem 0;
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 2rem;
-}
-
-.case-study-stat { text-align: center; }
-
-.case-study-stat-number {
-  display: block;
-  font-family: var(--serif);
-  font-size: 2.2rem;
-  font-weight: 700;
-  color: var(--accent);
-  line-height: 1;
-}
-
-.case-study-stat-label {
-  display: block;
-  font-family: var(--sans);
-  font-size: 0.78rem;
-  font-weight: 400;
-  color: var(--text-3);
-  margin-top: 0.5rem;
-}
-
-.case-study-quote {
-  margin: 0;
-  padding: 0 0 0 1.5rem;
-  border-left: 2px solid var(--accent-warm);
-}
-
-.case-study-quote p {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 1.15rem;
-  font-weight: 500;
-  color: var(--text);
-  line-height: 1.7;
-}
-
-@media (max-width: 768px) {
-  .case-study-grid { grid-template-columns: 1fr; gap: 2rem; }
-  .case-study-results { grid-template-columns: repeat(2, 1fr); }
-  .case-study-card { padding: 2rem 1.5rem; }
-  .case-study-name { font-size: 1.4rem; }
-}
-</style>
 
 <style>
 /* ─── CALCULATOR CTA BUTTON ─── */
@@ -2250,7 +2031,7 @@ footer {
 <section class="calculator" id="calculator">
   <div class="container">
     <div class="calc-header reveal">
-      <p class="section-label"><span class="section-number">06</span>SAVINGS CALCULATOR</p>
+      <p class="section-label"><span class="section-number">05</span>SAVINGS CALCULATOR</p>
       <h2 class="section-title">Calculate Your Savings</h2>
       <p class="section-desc" style="margin: 0 auto;">See exactly how much time and money AI automation can save your business.</p>
     </div>
@@ -2366,7 +2147,7 @@ footer {
   <div class="container">
     <div class="contact-inner reveal">
       <div class="contact-header">
-        <p class="section-label"><span class="section-number">07</span>GET STARTED</p>
+        <p class="section-label"><span class="section-number">06</span>GET STARTED</p>
         <h2 class="contact-title">Get in <span>Touch</span></h2>
         <p class="contact-subtitle">Tell us about your business and we'll identify the best automation opportunities for you.</p>
       </div>
