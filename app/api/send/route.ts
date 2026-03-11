@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getSupabase } from '../../../lib/supabase';
 import { requireAuth } from '../../../lib/auth';
 import { renderTemplate, TemplateKey } from '../../../lib/templates';
+import { verifyEmail } from '../../../lib/verify-email';
+import { getOptimalSendHour } from '../../../lib/send-time';
+import { getWinningVariant } from '../../../lib/ab-winner';
 import { Resend } from 'resend';
 
 // Category-aware follow-up intervals (Feature 9)
@@ -59,6 +62,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Lead has no email' }, { status: 400 });
   }
 
+  // Verify email domain has valid MX records before sending
+  const verification = await verifyEmail(lead.email);
+  if (!verification.valid) {
+    return NextResponse.json(
+      { error: `Email failed verification: ${verification.reason}` },
+      { status: 400 }
+    );
+  }
+
   const baseUrl = process.env.APP_BASE_URL || 'http://localhost:3000';
   const senderName = process.env.SENDER_NAME || 'Neil';
   const fromEmail = 'neil@sersweai.com';
@@ -110,7 +122,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to create email record' }, { status: 500 });
   }
 
-  const { subject, subjectVariant, text, html } = renderTemplate(lead, template as TemplateKey, baseUrl, emailRow.id);
+  // A/B auto-winner: if a variant has proven better, force it
+  const winner = await getWinningVariant(supabase, template);
+  const renderOptions = winner ? { forceVariant: winner } : undefined;
+
+  const { subject, subjectVariant, text, html } = renderTemplate(lead, template as TemplateKey, baseUrl, emailRow.id, renderOptions);
+
+  // Send time optimization: use best hour from open data instead of always 8 AM
+  const optimalHour = await getOptimalSendHour(supabase, lead.category || '');
+  const scheduledAt = nextBusinessDayAtHourPT(optimalHour);
 
   const unsubscribeUrl = `${baseUrl}/api/unsubscribe/${lead.id}`;
 
@@ -125,7 +145,7 @@ export async function POST(req: NextRequest) {
       'List-Unsubscribe': `<${unsubscribeUrl}>, <mailto:sersweai2@gmail.com?subject=unsubscribe>`,
       'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
     },
-    scheduledAt: nextBusinessDay8AMPT()
+    scheduledAt,
   } as any);
 
   if (sendError) {
@@ -167,7 +187,13 @@ export async function POST(req: NextRequest) {
     })
     .eq('id', lead.id);
 
-  return NextResponse.json({ ok: true, message_id: sendData?.id || null, scheduledAt: nextBusinessDay8AMPT() });
+  return NextResponse.json({
+    ok: true,
+    message_id: sendData?.id || null,
+    scheduledAt,
+    sendHour: optimalHour,
+    abWinner: winner || null,
+  });
 }
 
 function nextWeekday(date: Date): string {
@@ -177,7 +203,7 @@ function nextWeekday(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-function nextBusinessDay8AMPT(): string {
+function nextBusinessDayAtHourPT(hour: number): string {
   const next = new Date();
   do {
     next.setDate(next.getDate() + 1);
@@ -185,7 +211,6 @@ function nextBusinessDay8AMPT(): string {
     next.toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', weekday: 'long' })
   ));
   const datePT = next.toLocaleDateString('en-CA', { timeZone: 'America/Los_Angeles' });
-  // Dynamically resolve PT offset using Intl (handles DST correctly)
   const probe = new Date(`${datePT}T12:00:00Z`);
   const fmt = new Intl.DateTimeFormat('en-US', {
     timeZone: 'America/Los_Angeles',
@@ -197,5 +222,6 @@ function nextBusinessDay8AMPT(): string {
   const offsetHours = offsetMatch ? parseInt(offsetMatch[1], 10) : -8;
   const sign = offsetHours >= 0 ? '+' : '-';
   const abs = String(Math.abs(offsetHours)).padStart(2, '0');
-  return `${datePT}T08:00:00${sign}${abs}:00`;
+  const hh = String(hour).padStart(2, '0');
+  return `${datePT}T${hh}:00:00${sign}${abs}:00`;
 }

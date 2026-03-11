@@ -1,32 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
-
-const FETCH_TIMEOUT_MS = 8000;
-
-async function fetchPage(url: string): Promise<string | null> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-  try {
-    const res = await fetch(url, {
-      signal: controller.signal,
-      headers: { 'User-Agent': 'Mozilla/5.0 (compatible; LeadCRM/1.0)' },
-      redirect: 'follow',
-    });
-    if (!res.ok) return null;
-    const html = await res.text();
-    // Strip scripts, styles, and HTML tags to get readable text
-    return html
-      .replace(/<script[\s\S]*?<\/script>/gi, '')
-      .replace(/<style[\s\S]*?<\/style>/gi, '')
-      .replace(/<[^>]+>/g, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-      .slice(0, 6000); // Keep it under token limits
-  } catch {
-    return null;
-  } finally {
-    clearTimeout(timer);
-  }
-}
+import { jinaReader } from './jina';
 
 export type EnrichResult = {
   opener: string;
@@ -41,6 +14,7 @@ export type EnrichResult = {
 /**
  * Visit a lead's website, analyze it with Claude, and generate
  * a personalized cold email opener + business details.
+ * Uses Jina Reader for clean markdown extraction from JS-rendered sites.
  */
 export async function enrichLead(lead: {
   company_name: string;
@@ -57,13 +31,16 @@ export async function enrichLead(lead: {
     ? lead.website
     : `https://${lead.website}`;
 
-  // Fetch homepage + contact page in parallel
+  // Fetch homepage + contact page in parallel via Jina Reader
   const [homepage, contactPage] = await Promise.all([
-    fetchPage(baseUrl),
-    fetchPage(`${new URL(baseUrl).origin}/contact`),
+    jinaReader(baseUrl),
+    jinaReader(`${new URL(baseUrl).origin}/contact`),
   ]);
 
-  const siteContent = [homepage, contactPage].filter(Boolean).join('\n\n---\n\n');
+  const siteContent = [homepage, contactPage]
+    .filter(Boolean)
+    .join('\n\n---\n\n')
+    .slice(0, 8000);
 
   if (!siteContent || siteContent.length < 50) return null;
 

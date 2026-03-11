@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { getSupabase } from '../../../../lib/supabase';
+import { checkHotLead } from '../../../../lib/hot-lead-alert';
 
 const pixel = Buffer.from(
   'R0lGODlhAQABAPAAAP///wAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==',
@@ -19,6 +20,11 @@ export async function GET(req: NextRequest) {
         lead_id: leadId,
         event_type: 'open'
       });
+
+      // Check if this lead is now "hot" and alert via Telegram
+      if (leadId) {
+        checkHotLead(supabase, leadId, 'open').catch(() => {});
+      }
     } catch {
       // Ignore tracking failures when config is missing.
     }

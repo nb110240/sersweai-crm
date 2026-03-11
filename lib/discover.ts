@@ -1,6 +1,8 @@
 import { getSupabase } from './supabase';
 import { searchLocalBusinesses, type SerpApiLead } from './serpapi';
 import { scrapeEmail } from './scrape-email';
+import { verifyEmail } from './verify-email';
+import { findContactByDomain } from './apollo';
 
 export type DiscoverResult = {
   discovered: number;
@@ -94,7 +96,51 @@ export async function discoverAndImport(
     });
   }
 
-  // 2c. Extract first names from emails and company names
+  // 2c. Apollo enrichment — get real contact names and emails for leads
+  //     missing email or first_name (concurrency limit of 5)
+  const apolloTargets = rows.filter((r) => r.website && (!r.email || !r.first_name));
+  for (let i = 0; i < apolloTargets.length; i += CONCURRENCY) {
+    const batch = apolloTargets.slice(i, i + CONCURRENCY);
+    const results = await Promise.allSettled(
+      batch.map((r) => {
+        try {
+          const domain = new URL(
+            r.website!.startsWith('http') ? r.website! : `https://${r.website!}`
+          ).hostname.replace(/^www\./, '');
+          return findContactByDomain(domain);
+        } catch {
+          return Promise.resolve(null);
+        }
+      })
+    );
+    results.forEach((res, idx) => {
+      if (res.status === 'fulfilled' && res.value) {
+        const row = batch[idx];
+        const contact = res.value;
+        // Use Apollo email if we don't have one from scraping
+        if (!row.email && contact.email) {
+          row.email = contact.email;
+          enriched++;
+        }
+        // Always prefer Apollo's real first name
+        if (contact.first_name) {
+          (row as any).first_name = contact.first_name;
+        }
+      }
+    });
+  }
+
+  // 2d. Verify emails (MX check — free, unlimited)
+  for (const row of rows) {
+    if (row.email) {
+      const result = await verifyEmail(row.email);
+      if (!result.valid) {
+        row.email = null;
+      }
+    }
+  }
+
+  // 2e. Fallback: extract first names from emails and company names
   for (const row of rows) {
     if (!row.first_name) {
       (row as any).first_name = extractFirstName(row.email, row.company_name);

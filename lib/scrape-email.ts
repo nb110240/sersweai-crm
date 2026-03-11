@@ -1,3 +1,5 @@
+import { jinaReader } from './jina';
+
 const CONTACT_PATHS = ['/contact', '/contact-us', '/about'];
 const FETCH_TIMEOUT_MS = 5000;
 
@@ -22,23 +24,23 @@ function isJunk(email: string): boolean {
   return JUNK_PATTERNS.some((p) => p.test(email));
 }
 
-function extractEmails(html: string): string[] {
+function extractEmails(content: string): string[] {
   const found = new Set<string>();
 
   // 1. mailto: links
   let m: RegExpExecArray | null;
-  while ((m = MAILTO_REGEX.exec(html)) !== null) {
+  while ((m = MAILTO_REGEX.exec(content)) !== null) {
     found.add(m[1].toLowerCase());
   }
 
   // 2. General email regex
-  const general = html.match(EMAIL_REGEX) || [];
+  const general = content.match(EMAIL_REGEX) || [];
   for (const e of general) {
     found.add(e.toLowerCase());
   }
 
   // 3. Deobfuscation: "info [at] company [dot] com"
-  while ((m = OBFUSCATED_REGEX.exec(html)) !== null) {
+  while ((m = OBFUSCATED_REGEX.exec(content)) !== null) {
     found.add(`${m[1]}@${m[2]}.${m[3]}`.toLowerCase());
   }
 
@@ -78,9 +80,19 @@ async function fetchWithTimeout(url: string): Promise<string | null> {
 }
 
 /**
+ * Fetch page content — tries Jina Reader first (handles JS-rendered sites),
+ * falls back to direct fetch.
+ */
+async function fetchPage(url: string): Promise<string | null> {
+  const jina = await jinaReader(url);
+  if (jina && jina.length > 50) return jina;
+  return fetchWithTimeout(url);
+}
+
+/**
  * Scrape a website for an email address.
+ * Uses Jina Reader API for JS-rendered sites, falls back to direct fetch.
  * Tries the homepage, then /contact, /contact-us, /about — stops on first email found.
- * Returns the best email or null.
  */
 export async function scrapeEmail(
   websiteUrl: string
@@ -97,9 +109,9 @@ export async function scrapeEmail(
   let contactFormUrl: string | null = null;
 
   // Try homepage first
-  const homepageHtml = await fetchWithTimeout(base.origin);
-  if (homepageHtml) {
-    const emails = extractEmails(homepageHtml);
+  const homepageContent = await fetchPage(base.origin);
+  if (homepageContent) {
+    const emails = extractEmails(homepageContent);
     const best = pickBest(emails);
     if (best) return { email: best, contactFormUrl: null };
   }
@@ -107,15 +119,15 @@ export async function scrapeEmail(
   // Try contact/about pages
   for (const path of CONTACT_PATHS) {
     const url = `${base.origin}${path}`;
-    const html = await fetchWithTimeout(url);
-    if (html === null) continue;
+    const content = await fetchPage(url);
+    if (content === null) continue;
 
     // This contact page exists — record it as a fallback
     if (!contactFormUrl && (path === '/contact' || path === '/contact-us')) {
       contactFormUrl = url;
     }
 
-    const emails = extractEmails(html);
+    const emails = extractEmails(content);
     const best = pickBest(emails);
     if (best) return { email: best, contactFormUrl: null };
   }

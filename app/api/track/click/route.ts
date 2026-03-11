@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabase } from '../../../../lib/supabase';
+import { checkHotLead } from '../../../../lib/hot-lead-alert';
 
 function isSafeUrl(url: string) {
   try {
@@ -25,6 +26,11 @@ export async function GET(req: NextRequest) {
         event_type: 'click',
         url
       });
+
+      // Clicks = immediate hot lead alert
+      if (leadId) {
+        checkHotLead(supabase, leadId, 'click').catch(() => {});
+      }
     } catch {
       // Ignore tracking failures when config is missing.
     }

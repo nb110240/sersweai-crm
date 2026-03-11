@@ -71,7 +71,7 @@ const subjectVariants: Record<string, ((firm: string, category: string) => strin
   ],
 };
 
-export function renderTemplate(lead: Lead, template: TemplateKey, baseUrl: string, emailId: string) {
+export function renderTemplate(lead: Lead, template: TemplateKey, baseUrl: string, emailId: string, options?: { forceVariant?: string }) {
   const firstName = lead.first_name || 'there';
   const firm = lead.company_name;
   const category = lead.category || 'business';
@@ -88,11 +88,19 @@ export function renderTemplate(lead: Lead, template: TemplateKey, baseUrl: strin
 
   const trackingPixel = `${baseUrl}/api/track/open?email_id=${encodeURIComponent(emailId)}&lead_id=${encodeURIComponent(lead.id)}`;
 
-  // A/B variant selection (deterministic based on lead ID)
+  // A/B variant selection — use forced winner if available, otherwise deterministic split
   const variants = subjectVariants[template] || subjectVariants.email1;
-  const variantIndex = lead.id.charCodeAt(0) % variants.length;
+  let variantIndex: number;
+  if (options?.forceVariant && variants.length > 1) {
+    variantIndex = options.forceVariant.charCodeAt(0) - 65; // 'A'=0, 'B'=1
+    if (variantIndex < 0 || variantIndex >= variants.length) {
+      variantIndex = lead.id.charCodeAt(0) % variants.length;
+    }
+  } else {
+    variantIndex = lead.id.charCodeAt(0) % variants.length;
+  }
   const subject = variants[variantIndex](firm, category);
-  const subjectVariant = variants.length > 1 ? String.fromCharCode(65 + variantIndex) : null; // 'A', 'B', etc.
+  const subjectVariant = variants.length > 1 ? String.fromCharCode(65 + variantIndex) : null;
 
   const summaryClean = summary?.replace(/\.?\s*Rating:[\d\s./()reviews]+\.?$/i, '').trim() || '';
   const contextLine = summaryClean
