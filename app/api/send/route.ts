@@ -7,29 +7,30 @@ import { getOptimalSendHour } from '../../../lib/send-time';
 import { getWinningVariant } from '../../../lib/ab-winner';
 import { Resend } from 'resend';
 
-// Category-aware follow-up intervals (Feature 9)
-const categoryFollowUp: Record<string, Record<string, number | null>> = {
-  'Technology':           { email1: 2, email2: 5, email3: null, email4: null },
-  'Real Estate':          { email1: 4, email2: 10, email3: null, email4: null },
-  'Health & Wellness':    { email1: 3, email2: 7, email3: null, email4: null },
-  'Insurance':            { email1: 3, email2: 7, email3: null, email4: null },
-  'Dental & Medical':     { email1: 3, email2: 7, email3: null, email4: null },
-  'Legal (Solo/Small)':   { email1: 3, email2: 7, email3: null, email4: null },
-  'Financial Advisors':   { email1: 3, email2: 8, email3: null, email4: null },
-  'Property Management':  { email1: 3, email2: 7, email3: null, email4: null },
-  'Veterinary':           { email1: 3, email2: 7, email3: null, email4: null },
-  'Beauty & Fitness':     { email1: 2, email2: 5, email3: null, email4: null },
-  'Home Services':        { email1: 2, email2: 5, email3: null, email4: null },
-  'Creative & Media':     { email1: 3, email2: 7, email3: null, email4: null },
-  'Retail':               { email1: 3, email2: 7, email3: null, email4: null },
-  'Food & Beverage':      { email1: 3, email2: 7, email3: null, email4: null },
+// Tighter follow-up cadence: Day 3 → Day 7 → Day 12 → Day 18
+// Reddit feedback: 1 week gaps are too long for local businesses
+const categoryFollowUp: Record<string, Record<string, number>> = {
+  'Technology':           { email1: 3, email2: 4, email3: 5, email4: 6 },
+  'Real Estate':          { email1: 3, email2: 5, email3: 6, email4: 7 },
+  'Health & Wellness':    { email1: 3, email2: 4, email3: 5, email4: 6 },
+  'Insurance':            { email1: 3, email2: 4, email3: 5, email4: 6 },
+  'Dental & Medical':     { email1: 3, email2: 4, email3: 5, email4: 6 },
+  'Legal (Solo/Small)':   { email1: 3, email2: 5, email3: 5, email4: 6 },
+  'Financial Advisors':   { email1: 3, email2: 5, email3: 5, email4: 6 },
+  'Property Management':  { email1: 3, email2: 4, email3: 5, email4: 6 },
+  'Veterinary':           { email1: 3, email2: 4, email3: 5, email4: 6 },
+  'Beauty & Fitness':     { email1: 2, email2: 4, email3: 5, email4: 6 },
+  'Home Services':        { email1: 2, email2: 4, email3: 5, email4: 6 },
+  'Creative & Media':     { email1: 3, email2: 4, email3: 5, email4: 6 },
+  'Retail':               { email1: 3, email2: 4, email3: 5, email4: 6 },
+  'Food & Beverage':      { email1: 2, email2: 4, email3: 5, email4: 6 },
 };
 
-const defaultFollowUpDays: Record<string, number | null> = {
+const defaultFollowUpDays: Record<string, number> = {
   email1: 3,
-  email2: 7,
-  email3: null,
-  email4: null,
+  email2: 4,
+  email3: 5,
+  email4: 6,
 };
 
 export async function POST(req: NextRequest) {

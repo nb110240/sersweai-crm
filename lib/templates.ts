@@ -61,15 +61,23 @@ const subjectVariants: Record<string, ((firm: string, category: string) => strin
   ],
   email2: [
     (firm) => `Thought of something for ${firm}`,
-    (firm) => `Following up — ${firm}`,
+    (firm) => `Had an idea for ${firm}`,
   ],
   email3: [
-    (firm) => `Last note — ${firm}`,
+    (firm) => `Quick example for ${firm}`,
+    (firm) => `${firm} — one more thing`,
   ],
   email4: [
-    (firm) => `Circling back — ${firm}`,
+    (firm) => `Last note — ${firm}`,
   ],
 };
+
+// Plain-text style HTML wrapper — looks like it was typed in Gmail
+function plainHtml(lines: string[], trackingPixel: string): string {
+  return lines.join('<br><br>') +
+    `<br><br><span style="font-size:12px;color:#999;">If you'd prefer not to hear from me, reply "unsubscribe."</span>` +
+    `<img src="${trackingPixel}" width="1" height="1" alt="" />`;
+}
 
 export function renderTemplate(lead: Lead, template: TemplateKey, baseUrl: string, emailId: string, options?: { forceVariant?: string }) {
   const firstName = lead.first_name || 'there';
@@ -78,13 +86,13 @@ export function renderTemplate(lead: Lead, template: TemplateKey, baseUrl: strin
   const city = lead.city || '';
   const summary = lead.summary || '';
   const websiteUrl = 'https://sersweai.com';
-  const [example1, example2] = categoryExamples[category] || ['workflow automation', 'client follow-up sequences'];
+  const [example1] = categoryExamples[category] || ['workflow automation', 'client follow-up sequences'];
   const bookingLink = bookingUrl
     ? `${baseUrl}/api/track/click?email_id=${encodeURIComponent(emailId)}&lead_id=${encodeURIComponent(lead.id)}&url=${encodeURIComponent(bookingUrl)}`
     : '';
   const siteLink = `${baseUrl}/api/track/click?email_id=${encodeURIComponent(emailId)}&lead_id=${encodeURIComponent(lead.id)}&url=${encodeURIComponent(websiteUrl)}`;
 
-  const footer = `\n\n— ${senderName}\n${senderEmail}\nhttps://sersweai.com\n\nIf you'd prefer not to hear from me, reply "unsubscribe."`;
+  const footer = `\n\n— Neil\n${senderEmail}\nsersweai.com\n\nIf you'd prefer not to hear from me, reply "unsubscribe."`;
 
   const trackingPixel = `${baseUrl}/api/track/open?email_id=${encodeURIComponent(emailId)}&lead_id=${encodeURIComponent(lead.id)}`;
 
@@ -92,7 +100,7 @@ export function renderTemplate(lead: Lead, template: TemplateKey, baseUrl: strin
   const variants = subjectVariants[template] || subjectVariants.email1;
   let variantIndex: number;
   if (options?.forceVariant && variants.length > 1) {
-    variantIndex = options.forceVariant.charCodeAt(0) - 65; // 'A'=0, 'B'=1
+    variantIndex = options.forceVariant.charCodeAt(0) - 65;
     if (variantIndex < 0 || variantIndex >= variants.length) {
       variantIndex = lead.id.charCodeAt(0) % variants.length;
     }
@@ -102,100 +110,109 @@ export function renderTemplate(lead: Lead, template: TemplateKey, baseUrl: strin
   const subject = variants[variantIndex](firm, category);
   const subjectVariant = variants.length > 1 ? String.fromCharCode(65 + variantIndex) : null;
 
-  const summaryClean = summary?.replace(/\.?\s*Rating:[\d\s./()reviews]+\.?$/i, '').trim() || '';
-  const contextLine = summaryClean
-    ? `I came across ${firm} and noticed ${summaryClean.toLowerCase().startsWith('they') || summaryClean.toLowerCase().startsWith('the') ? summaryClean.charAt(0).toLowerCase() + summaryClean.slice(1) : `that you ${summaryClean.charAt(0).toLowerCase() + summaryClean.slice(1)}`}`
-    : `I came across ${firm}${city ? ` in ${city}` : ''} and work with a lot of ${category} firms`;
-
-  // Parse enrichment details from summary (format: "Services: X | Stack: Y | Customers: Z | Opportunity: W")
+  // Parse enrichment details from summary
   const enriched = {
     services: summary?.match(/Services:\s*([^|]+)/i)?.[1]?.trim() || '',
     stack: summary?.match(/Stack:\s*([^|]+)/i)?.[1]?.trim() || '',
     customers: summary?.match(/Customers:\s*([^|]+)/i)?.[1]?.trim() || '',
     opportunity: summary?.match(/Opportunity:\s*([^|]+)/i)?.[1]?.trim() || '',
+    specificDetail: summary?.match(/Detail:\s*([^|]+)/i)?.[1]?.trim() || '',
+    followUpAngles: (summary?.match(/Angles:\s*(.+)/i)?.[1]?.trim() || '').split('|').map((a: string) => a.trim()).filter(Boolean),
   };
   const hasEnrichment = !!(enriched.services || enriched.opportunity);
 
+  // ─── EMAIL 1: Specific opener + hook question ───
   if (template === 'email1') {
     const hook = categoryHooks[category] || 'do you still handle a lot of admin work manually';
     const customOpener = lead.notes?.trim();
-    // If we have a custom AI-generated opener, use it + hook. Otherwise just hook.
     const openingLine = customOpener
       ? `${customOpener} — ${hook}?`
       : `I came across ${firm}${city ? ` in ${city}` : ''} — ${hook}?`;
 
-    const text = `Hi ${firstName},\n\n${openingLine}\n\nI'm Neil, based in San Diego. I build simple automations that handle that kind of work automatically — no new software, just connects to what you already use.\n\nHappy to show you a quick example if you're curious.${footer}`;
+    const text = `Hi ${firstName},\n\n${openingLine}\n\nI'm Neil, based in San Diego. I build simple automations that handle that kind of work — no new software, just connects to what you already use.\n\nHappy to show you a quick example if you're curious.${footer}`;
 
-    const html = `
-      <p>Hi ${firstName},</p>
-      <p>${openingLine}</p>
-      <p>I'm Neil, based in San Diego. I build simple automations that handle that kind of work automatically — no new software, just connects to what you already use.</p>
-      <p>Happy to show you a quick example if you're curious.</p>
-      <p>— Neil<br/>${senderEmail}<br/><a href="${siteLink}">sersweai.com</a></p>
-      <p style="font-size:12px;color:#999;">If you'd prefer not to hear from me, reply "unsubscribe."</p>
-      <img src="${trackingPixel}" width="1" height="1" alt="" />
-    `;
+    const html = plainHtml([
+      `Hi ${firstName},`,
+      openingLine,
+      `I'm Neil, based in San Diego. I build simple automations that handle that kind of work — no new software, just connects to what you already use.`,
+      `Happy to show you a quick example if you're curious.`,
+      `— Neil<br>${senderEmail}<br><a href="${siteLink}">sersweai.com</a>`,
+    ], trackingPixel);
     return { subject, subjectVariant, text, html };
   }
 
+  // ─── EMAIL 2: New angle — specific idea with a concrete result ───
   if (template === 'email2') {
-    const ideaLine = hasEnrichment && enriched.opportunity
-      ? `I was thinking about ${firm} and noticed ${enriched.opportunity.toLowerCase()}. I recently built a workflow for a similar ${category.toLowerCase()} business that handles exactly that — took about a week and saved them ~10 hours/month.`
-      : `A lot of ${category} businesses I work with waste hours on ${example1.split('+')[0].trim().toLowerCase()}. I recently built a workflow that handles it automatically — took about a week and saved the owner ~10 hours/month.`;
+    // Use enrichment follow-up angle #1 if available
+    const angle = enriched.followUpAngles[0] || '';
+    let ideaLine: string;
+
+    if (angle) {
+      ideaLine = `${angle} I recently built something similar for a ${category.toLowerCase()} business — took about a week and saved them ~10 hours/month.`;
+    } else if (hasEnrichment && enriched.opportunity) {
+      ideaLine = `I was looking at ${firm}'s site and noticed ${enriched.opportunity.toLowerCase()}. I built a workflow for a similar business that handles exactly that — saved them ~10 hours/month.`;
+    } else {
+      ideaLine = `A lot of ${category.toLowerCase()} businesses I talk to waste hours on ${example1.split('+')[0].trim().toLowerCase()}. I built a workflow that handles it automatically — saved the owner ~10 hours/month.`;
+    }
 
     const stackLine = hasEnrichment && enriched.stack && enriched.stack !== 'unknown'
-      ? ` It connects directly to tools like ${enriched.stack} — no new software needed.`
+      ? ` It plugs right into ${enriched.stack}.`
       : '';
 
-    const text = `Hi ${firstName},\n\nJust following up — I had a specific idea for ${firm}.\n\n${ideaLine}${stackLine}\n\nI also build lead generation systems that find and reach new prospects on autopilot — same idea, no extra software.\n\nWould either of those be useful for you? Happy to walk through it — takes 15 minutes.\n\nYou can see examples here: ${siteLink}${bookingLink ? `\n\nOr grab a time: ${bookingLink}` : ''}${footer}`;
+    const text = `Hi ${firstName},\n\nHad a specific idea for ${firm}.\n\n${ideaLine}${stackLine}\n\nWant me to walk you through it? Takes 15 minutes.${bookingLink ? `\n\nGrab a time here: ${bookingLink}` : ''}${footer}`;
 
-    const html = `
-      <p>Hi ${firstName},</p>
-      <p>Just following up — I had a specific idea for ${firm}.</p>
-      <p>${ideaLine}${stackLine}</p>
-      <p>I also build lead generation systems that find and reach new prospects on autopilot — same idea, no extra software.</p>
-      <p>Would either of those be useful for you? Happy to walk through it — takes 15 minutes.</p>
-      <p>You can see examples here: <a href="${siteLink}">sersweai.com</a></p>
-      ${bookingLink ? `<p>Or grab a time: <a href="${bookingLink}">${bookingUrl}</a></p>` : ''}
-      <p>— Neil<br/>${senderEmail}</p>
-      <p style="font-size:12px;color:#999;">If you'd prefer not to hear from me, reply "unsubscribe."</p>
-      <img src="${trackingPixel}" width="1" height="1" alt="" />
-    `;
+    const html = plainHtml([
+      `Hi ${firstName},`,
+      `Had a specific idea for ${firm}.`,
+      `${ideaLine}${stackLine}`,
+      `Want me to walk you through it? Takes 15 minutes.`,
+      bookingLink ? `Grab a time here: <a href="${bookingLink}">${bookingUrl}</a>` : '',
+      `— Neil<br>${senderEmail}<br><a href="${siteLink}">sersweai.com</a>`,
+    ].filter(Boolean), trackingPixel);
     return { subject, subjectVariant, text, html };
   }
 
-  if (template === 'email4') {
-    const e4Line = hasEnrichment && enriched.customers
-      ? `If you ever want to spend less time on admin and more time with ${enriched.customers.toLowerCase()}, I'm around.`
-      : `If ${firm} ever needs help automating the busywork or generating new leads on autopilot, I'm around.`;
+  // ─── EMAIL 3: New angle — offer something concrete (free sketch/audit) ───
+  if (template === 'email3') {
+    const angle = enriched.followUpAngles[1] || '';
+    let offerLine: string;
 
-    const text = `Hi ${firstName},\n\nCircling back one more time — I know timing is everything.\n\n${e4Line} Just reply to this email.\n\n— Neil${footer}`;
+    if (angle) {
+      offerLine = `${angle}\n\nI put together a quick sketch of how this would work for ${firm} specifically. No call needed — just reply and I'll send it over.`;
+    } else if (hasEnrichment && enriched.services) {
+      offerLine = `I sketched out how ${firm} could automate part of your ${enriched.services.split(',')[0].trim().toLowerCase()} workflow and free up a few hours a week. No call needed — just reply and I'll share it.`;
+    } else {
+      offerLine = `I put together a quick idea for how ${firm} could automate some of the repetitive work. No call needed — just reply and I'll send it over.`;
+    }
 
-    const html = `
-      <p>Hi ${firstName},</p>
-      <p>Circling back one more time — I know timing is everything.</p>
-      <p>${e4Line} Just reply to this email.</p>
-      <p>— Neil<br/><a href="${siteLink}">sersweai.com</a></p>
-      <p style="font-size:12px;color:#999;">If you'd prefer not to hear from me, reply "unsubscribe."</p>
-      <img src="${trackingPixel}" width="1" height="1" alt="" />
-    `;
+    const text = `Hi ${firstName},\n\n${offerLine}${footer}`;
+
+    const html = plainHtml([
+      `Hi ${firstName},`,
+      offerLine.replace('\n\n', '<br><br>'),
+      `— Neil<br><a href="${siteLink}">sersweai.com</a>`,
+    ], trackingPixel);
     return { subject, subjectVariant, text, html };
   }
 
-  // email3 (default)
-  const e3Specific = hasEnrichment && enriched.services
-    ? `I sketched out a quick idea for how ${firm} could automate part of your ${enriched.services.split(',')[0].trim().toLowerCase()} workflow and free up a few hours a week`
-    : `I put together a quick idea for how ${firm} could automate some of the repetitive work and bring in new leads automatically`;
+  // ─── EMAIL 4: Genuine breakup with new framing ───
+  const angle = enriched.followUpAngles[2] || '';
+  let breakupLine: string;
 
-  const text = `Hi ${firstName},\n\nLast note from me — no worries if this isn't a priority right now.\n\n${e3Specific}. No call needed, just reply and I'll share it.\n\n— Neil${footer}`;
+  if (angle) {
+    breakupLine = `One last thought: ${angle}\n\nEither way, no hard feelings. If timing's ever better, just reply to this email.`;
+  } else if (hasEnrichment && enriched.customers) {
+    breakupLine = `I know you're busy with ${enriched.customers.toLowerCase()}. If you ever want to spend less time on admin and more time on that, just reply to this email. I'm around.`;
+  } else {
+    breakupLine = `I'll leave it here. If ${firm} ever wants to automate the busywork or bring in new leads on autopilot, just reply. I'm around.`;
+  }
 
-  const html = `
-    <p>Hi ${firstName},</p>
-    <p>Last note from me — no worries if this isn't a priority right now.</p>
-    <p>${e3Specific}. No call needed, just reply and I'll share it.</p>
-    <p>— Neil<br/><a href="${siteLink}">sersweai.com</a></p>
-    <p style="font-size:12px;color:#999;">If you'd prefer not to hear from me, reply "unsubscribe."</p>
-    <img src="${trackingPixel}" width="1" height="1" alt="" />
-  `;
+  const text = `Hi ${firstName},\n\n${breakupLine}${footer}`;
+
+  const html = plainHtml([
+    `Hi ${firstName},`,
+    breakupLine.replace('\n\n', '<br><br>'),
+    `— Neil<br><a href="${siteLink}">sersweai.com</a>`,
+  ], trackingPixel);
   return { subject, subjectVariant, text, html };
 }

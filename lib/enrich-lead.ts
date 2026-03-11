@@ -8,6 +8,8 @@ export type EnrichResult = {
     stack?: string;
     customerProfile?: string;
     observation?: string;
+    specificDetail?: string;
+    followUpAngles?: string;
   };
 };
 
@@ -48,11 +50,11 @@ export async function enrichLead(lead: {
 
   const message = await anthropic.messages.create({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: 300,
+    max_tokens: 500,
     messages: [
       {
         role: 'user',
-        content: `You are helping write a personalized cold email opener for a sales outreach. Analyze this business website content and return a JSON object.
+        content: `You are helping write personalized cold email content for a sales outreach to a local business. Be PAINFULLY specific — reference real details from their website. Generic = ignored.
 
 Business: ${lead.company_name}
 Category: ${lead.category}
@@ -62,11 +64,13 @@ Website content:
 ${siteContent}
 
 Return ONLY a JSON object with these fields:
-- "opener": A 1-sentence personalized observation about their business that shows you actually looked at their website. Reference something specific — a service they offer, how they position themselves, their target customer, something on their site that could be improved, or a gap where automation would help. Do NOT be generic. Do NOT mention AI or automation in the opener — just show you know their business. Write it as a natural sentence starting with "I noticed..." or "I saw that..." or "I came across...". Keep it under 25 words.
+- "opener": A 1-sentence hyper-specific observation. Reference a REAL detail: a named service they offer, a specific page on their site, their service area, a pricing detail, a team member name, how they describe themselves, or a visible gap (phone-only booking, no online forms, manual processes). NOT generic. Starting with "I noticed..." or "I saw that...". Under 25 words. Do NOT mention AI or automation.
 - "services": Their main services/offerings (comma-separated, 3-5 items max)
-- "stack": Any tech/tools/platforms visible on their site (e.g., "Squarespace", "Jane App", "Mindbody", "WordPress"). Say "unknown" if not detectable.
-- "customerProfile": Who their target customer appears to be in 5-10 words
-- "observation": One specific thing about their business that automation could improve (e.g., "booking is phone-only", "no online intake forms", "manual quote requests"). Keep it under 15 words.`,
+- "stack": Tech/tools/platforms visible on their site (e.g., "Squarespace", "Jane App", "Mindbody"). Say "unknown" if not detectable.
+- "customerProfile": Who their target customer is in 5-10 words
+- "observation": One specific automation opportunity (e.g., "booking requires calling the front desk", "quote requests go to a generic email", "no online scheduling for consultations"). Under 15 words.
+- "specificDetail": One concrete detail that proves you looked at their site — a named service, a team member, a location, a recent blog post, a promotion, a review count. This should be something only visible by actually visiting their website. Under 20 words.
+- "followUpAngles": Three different angles for follow-up emails, separated by " | ". Each should be a fresh observation or value-add, NOT "just checking in." Examples: a stat about their industry, a reference to a specific service they offer, a concrete suggestion. Each angle under 20 words.`,
       },
     ],
   });
@@ -86,6 +90,8 @@ Return ONLY a JSON object with these fields:
         stack: parsed.stack,
         customerProfile: parsed.customerProfile,
         observation: parsed.observation,
+        specificDetail: parsed.specificDetail,
+        followUpAngles: parsed.followUpAngles,
       },
     };
   } catch {

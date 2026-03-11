@@ -1,7 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 
-// Default send hour if not enough data
-const DEFAULT_HOUR = 8;
+// Default send hour if not enough data — 7 AM PT (before they open, per Reddit feedback)
+const DEFAULT_HOUR = 7;
 // Minimum opens needed before we trust the data
 const MIN_OPENS_THRESHOLD = 10;
 
