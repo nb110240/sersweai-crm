@@ -1412,6 +1412,75 @@ section { position: relative; z-index: 2; }
   line-height: 1.6;
 }
 
+/* --- CUSTOM TIME REQUEST --- */
+.custom-time-toggle {
+  text-align: center;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.custom-time-btn {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: none;
+  border: 1px solid var(--border-accent);
+  padding: 0.65rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.custom-time-btn:hover {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
+
+.custom-time-form {
+  display: none;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.custom-time-form.active {
+  display: flex;
+}
+
+.custom-time-form .form-group input {
+  font-family: var(--sans);
+  font-size: 0.88rem;
+  font-weight: 300;
+  color: var(--text);
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  padding: 0.7rem 1rem;
+  border-radius: 2px;
+  outline: none;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.custom-time-form .form-group input:focus {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  background: #fff;
+}
+
+.custom-time-form .form-group label {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
 @media (max-width: 480px) {
   .timeslot-grid { grid-template-columns: repeat(2, 1fr); }
   .timeslot-form-row { grid-template-columns: 1fr; }
@@ -2498,6 +2567,37 @@ footer {
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
               </button>
             </div>
+            <!-- Request a custom time -->
+            <div class="custom-time-toggle" id="custom-time-toggle">
+              <button class="custom-time-btn" id="custom-time-btn">Request Another Time</button>
+            </div>
+            <div class="custom-time-form" id="custom-time-form">
+              <div class="timeslot-form-row">
+                <div class="form-group">
+                  <label for="custom-date">Preferred Date *</label>
+                  <input type="date" id="custom-date" required>
+                </div>
+                <div class="form-group">
+                  <label for="custom-time">Preferred Time *</label>
+                  <input type="time" id="custom-time" required>
+                </div>
+              </div>
+              <div class="timeslot-form-row">
+                <div class="form-group">
+                  <label for="custom-name">Name *</label>
+                  <input type="text" id="custom-name" placeholder="Jane Smith" required maxlength="100">
+                </div>
+                <div class="form-group">
+                  <label for="custom-email">Email *</label>
+                  <input type="email" id="custom-email" placeholder="jane@acme.com" required maxlength="150">
+                </div>
+              </div>
+              <button class="timeslot-submit" id="custom-submit">
+                Request Meeting
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
+            </div>
+
             <div class="timeslot-success" id="timeslot-success">
               <div class="timeslot-success-icon">&#10003;</div>
               <div class="timeslot-success-title">Meeting Requested!</div>
@@ -2895,6 +2995,73 @@ function hideTimeSlots() {
 
 // Back button
 document.getElementById('timeslot-back').addEventListener('click', hideTimeSlots);
+
+// Custom time toggle
+document.getElementById('custom-time-btn').addEventListener('click', function() {
+  const form = document.getElementById('custom-time-form');
+  form.classList.toggle('active');
+  this.textContent = form.classList.contains('active') ? 'Use Available Times' : 'Request Another Time';
+  // Set min date to tomorrow
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  document.getElementById('custom-date').min = tomorrow.toISOString().split('T')[0];
+});
+
+// Custom time submit
+document.getElementById('custom-submit').addEventListener('click', async function() {
+  const date = document.getElementById('custom-date').value;
+  const time = document.getElementById('custom-time').value;
+  const name = sanitize(document.getElementById('custom-name').value);
+  const email = sanitize(document.getElementById('custom-email').value);
+
+  if (!date) document.getElementById('custom-date').style.borderColor = '#e74c3c';
+  if (!time) document.getElementById('custom-time').style.borderColor = '#e74c3c';
+  if (!name) document.getElementById('custom-name').style.borderColor = '#e74c3c';
+  if (!email) document.getElementById('custom-email').style.borderColor = '#e74c3c';
+  if (!date || !time || !name || !email) return;
+
+  // Format time for display
+  const [h, m] = time.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const displayTime = ((h % 12) || 12) + ':' + String(m).padStart(2, '0') + ' ' + ampm;
+
+  this.disabled = true;
+  this.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Sending...';
+
+  try {
+    await fetch('https://primary-production-0c8b.up.railway.app/webhook/sersweai-contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        full_name: name,
+        email: email,
+        source: 'sersweai.com-booking-custom',
+        interest: 'Book a Call',
+        message: 'Custom meeting request: ' + date + ' at ' + displayTime + ' PT (30 min)',
+        booking: {
+          date: date,
+          time: displayTime,
+          duration: '30 minutes',
+          custom_request: true
+        },
+        submitted_at: new Date().toISOString()
+      })
+    });
+
+    document.getElementById('custom-time-form').classList.remove('active');
+    document.getElementById('custom-time-toggle').style.display = 'none';
+    document.getElementById('timeslot-grid').style.display = 'none';
+    document.getElementById('timeslot-back').style.display = 'none';
+    document.getElementById('timeslot-form').classList.remove('active');
+    const success = document.getElementById('timeslot-success');
+    success.style.display = 'block';
+    success.classList.add('visible');
+  } catch (e) {
+    alert('Something went wrong. Please try again or email us at sersweai2@gmail.com');
+    this.disabled = false;
+    this.innerHTML = 'Request Meeting <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+  }
+});
 
 // Submit booking
 document.getElementById('timeslot-submit').addEventListener('click', async function() {
