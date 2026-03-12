@@ -1070,7 +1070,7 @@ section { position: relative; z-index: 2; }
 }
 
 .booking-wrapper.open {
-  max-height: 700px;
+  max-height: 1100px;
   opacity: 1;
   margin-top: 2rem;
 }
@@ -1196,6 +1196,12 @@ section { position: relative; z-index: 2; }
   color: var(--text-4);
 }
 
+.cal-day.selected {
+  background: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
 .cal-footer {
   padding: 1rem 2rem 1.5rem;
   border-top: 1px solid var(--border);
@@ -1217,6 +1223,202 @@ section { position: relative; z-index: 2; }
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--text-4);
+}
+
+/* --- TIME SLOT PICKER --- */
+.timeslot-panel {
+  display: none;
+  border-top: 1px solid var(--border);
+  padding: 1.5rem 2rem;
+  background: var(--surface);
+}
+
+.timeslot-panel.active {
+  display: block;
+}
+
+.timeslot-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.timeslot-date {
+  font-family: var(--serif);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.timeslot-back {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.4rem 0;
+  transition: color 0.3s ease;
+}
+
+.timeslot-back:hover { color: var(--accent); }
+
+.timeslot-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.timeslot-btn {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-2);
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  padding: 0.7rem 0.5rem;
+  border-radius: 2px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.3s ease;
+}
+
+.timeslot-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.timeslot-btn.selected {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+.timeslot-form {
+  display: none;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.timeslot-form.active {
+  display: flex;
+}
+
+.timeslot-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.timeslot-form .form-group label {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.timeslot-form .form-group input {
+  font-family: var(--sans);
+  font-size: 0.88rem;
+  font-weight: 300;
+  color: var(--text);
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  padding: 0.7rem 1rem;
+  border-radius: 2px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.timeslot-form .form-group input:focus {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  background: #fff;
+}
+
+.timeslot-submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  padding: 0.9rem 2rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.4s var(--ease);
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+.timeslot-submit:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.timeslot-submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.timeslot-submit svg {
+  width: 14px; height: 14px;
+}
+
+.timeslot-success {
+  display: none;
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.timeslot-success.visible {
+  display: block;
+}
+
+.timeslot-success-icon {
+  font-size: 1.5rem;
+  color: var(--accent);
+  margin-bottom: 0.5rem;
+}
+
+.timeslot-success-title {
+  font-family: var(--serif);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 0.35rem;
+}
+
+.timeslot-success-text {
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  font-weight: 300;
+  color: var(--text-3);
+  line-height: 1.6;
+}
+
+@media (max-width: 480px) {
+  .timeslot-grid { grid-template-columns: repeat(2, 1fr); }
+  .timeslot-form-row { grid-template-columns: 1fr; }
 }
 
 .form-badge {
@@ -2272,9 +2474,39 @@ footer {
             <span class="cal-weekday">Sat</span>
           </div>
           <div class="cal-days" id="cal-days"></div>
-          <div class="cal-footer">
+          <div class="cal-footer" id="cal-footer">
             <span class="cal-footer-dot"></span>
             <span class="cal-footer-text">Select a weekday to book a 30-minute consultation</span>
+          </div>
+
+          <!-- Time slot picker (shown after selecting a day) -->
+          <div class="timeslot-panel" id="timeslot-panel">
+            <div class="timeslot-header">
+              <span class="timeslot-date" id="timeslot-date"></span>
+              <button class="timeslot-back" id="timeslot-back">&larr; Back to calendar</button>
+            </div>
+            <div class="timeslot-grid" id="timeslot-grid"></div>
+            <div class="timeslot-form" id="timeslot-form">
+              <div class="timeslot-form-row">
+                <div class="form-group">
+                  <label for="book-name">Name *</label>
+                  <input type="text" id="book-name" placeholder="Jane Smith" required maxlength="100">
+                </div>
+                <div class="form-group">
+                  <label for="book-email">Email *</label>
+                  <input type="email" id="book-email" placeholder="jane@acme.com" required maxlength="150">
+                </div>
+              </div>
+              <button class="timeslot-submit" id="timeslot-submit">
+                Request Meeting
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+              </button>
+            </div>
+            <div class="timeslot-success" id="timeslot-success">
+              <div class="timeslot-success-icon">&#10003;</div>
+              <div class="timeslot-success-title">Meeting Requested!</div>
+              <div class="timeslot-success-text">We'll send you a calendar invite shortly at the email you provided.</div>
+            </div>
           </div>
         </div>
       </div>
@@ -2538,12 +2770,21 @@ document.getElementById('nav-book-call').addEventListener('click', (e) => {
   closeMobile();
 });
 
-// --- CUSTOM CALENDAR ---
-const TIDYCAL_URL = 'https://tidycal.com/neilbajaj1102/30-minute-meeting';
+// --- CUSTOM CALENDAR + IN-HOUSE BOOKING ---
 let calDate = new Date();
 calDate.setDate(1);
+let selectedDate = null;
+let selectedTime = null;
 
 const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+const AVAILABLE_TIMES = [
+  '9:00 AM', '9:30 AM', '10:00 AM', '10:30 AM',
+  '11:00 AM', '11:30 AM', '1:00 PM', '1:30 PM',
+  '2:00 PM', '2:30 PM', '3:00 PM', '3:30 PM',
+  '4:00 PM', '4:30 PM'
+];
 
 function renderCalendar() {
   const monthEl = document.getElementById('cal-month');
@@ -2560,7 +2801,6 @@ function renderCalendar() {
 
   let html = '';
 
-  // Empty cells before first day
   for (let i = 0; i < firstDay; i++) {
     html += '<span class="cal-day empty"></span>';
   }
@@ -2579,8 +2819,11 @@ function renderCalendar() {
     if (isWeekend && !isPast) cls += ' weekend';
     if (isAvailable) cls += ' available';
 
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    if (isAvailable && selectedDate === dateStr) cls += ' selected';
+
     if (isAvailable) {
-      html += `<span class="${cls}" data-date="${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}">${d}</span>`;
+      html += `<span class="${cls}" data-date="${dateStr}">${d}</span>`;
     } else {
       html += `<span class="${cls}">${d}</span>`;
     }
@@ -2588,13 +2831,113 @@ function renderCalendar() {
 
   daysEl.innerHTML = html;
 
-  // Attach click handlers to available days
+  // Click handler — show time slots
   daysEl.querySelectorAll('.cal-day.available').forEach(el => {
     el.addEventListener('click', () => {
-      window.open(TIDYCAL_URL, '_blank', 'noopener');
+      selectedDate = el.dataset.date;
+      selectedTime = null;
+      showTimeSlots(selectedDate);
+      renderCalendar(); // re-render to highlight selected day
     });
   });
 }
+
+function showTimeSlots(dateStr) {
+  const panel = document.getElementById('timeslot-panel');
+  const grid = document.getElementById('timeslot-grid');
+  const footer = document.getElementById('cal-footer');
+  const form = document.getElementById('timeslot-form');
+  const success = document.getElementById('timeslot-success');
+
+  // Parse date for display
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dateObj = new Date(y, m - 1, d);
+  document.getElementById('timeslot-date').textContent =
+    `${dayNames[dateObj.getDay()]}, ${monthNames[m - 1]} ${d}`;
+
+  // Build time slot buttons
+  let html = '';
+  AVAILABLE_TIMES.forEach(time => {
+    html += `<button class="timeslot-btn" data-time="${time}">${time}</button>`;
+  });
+  grid.innerHTML = html;
+
+  // Show panel, hide footer
+  panel.classList.add('active');
+  footer.style.display = 'none';
+  form.classList.remove('active');
+  success.classList.remove('visible');
+  success.style.display = 'none';
+
+  // Time slot click handlers
+  grid.querySelectorAll('.timeslot-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      grid.querySelectorAll('.timeslot-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      selectedTime = btn.dataset.time;
+      form.classList.add('active');
+    });
+  });
+}
+
+function hideTimeSlots() {
+  const panel = document.getElementById('timeslot-panel');
+  const footer = document.getElementById('cal-footer');
+  panel.classList.remove('active');
+  footer.style.display = '';
+  selectedDate = null;
+  selectedTime = null;
+  renderCalendar();
+}
+
+// Back button
+document.getElementById('timeslot-back').addEventListener('click', hideTimeSlots);
+
+// Submit booking
+document.getElementById('timeslot-submit').addEventListener('click', async function() {
+  const name = sanitize(document.getElementById('book-name').value);
+  const email = sanitize(document.getElementById('book-email').value);
+
+  if (!name || !email) {
+    if (!name) document.getElementById('book-name').style.borderColor = '#e74c3c';
+    if (!email) document.getElementById('book-email').style.borderColor = '#e74c3c';
+    return;
+  }
+
+  this.disabled = true;
+  this.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg> Sending...';
+
+  try {
+    await fetch('https://primary-production-0c8b.up.railway.app/webhook/sersweai-contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        full_name: name,
+        email: email,
+        source: 'sersweai.com-booking',
+        interest: 'Book a Call',
+        message: 'Meeting request: ' + selectedDate + ' at ' + selectedTime + ' (30 min)',
+        booking: {
+          date: selectedDate,
+          time: selectedTime,
+          duration: '30 minutes'
+        },
+        submitted_at: new Date().toISOString()
+      })
+    });
+
+    document.getElementById('timeslot-form').classList.remove('active');
+    document.getElementById('timeslot-grid').style.display = 'none';
+    document.getElementById('timeslot-back').style.display = 'none';
+    const success = document.getElementById('timeslot-success');
+    success.style.display = 'block';
+    success.classList.add('visible');
+  } catch (e) {
+    alert('Something went wrong. Please try again or email us at sersweai2@gmail.com');
+    this.disabled = false;
+    this.innerHTML = 'Request Meeting <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M5 12h14M12 5l7 7-7 7"/></svg>';
+  }
+});
 
 document.getElementById('cal-prev').addEventListener('click', () => {
   const now = new Date();
