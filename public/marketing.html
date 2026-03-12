@@ -20,11 +20,11 @@
   --accent: #0f5d5c;
   --accent-hover: #1a7a79;
   --accent-warm: #c6a356;
-  --accent-dim: rgba(15,93,92,0.05);
+  --accent-dim: rgba(15,93,92,0.08);
   --text: #1A1A1E;
   --text-2: #3D3D44;
   --text-3: #6B6B74;
-  --text-4: #9E9EA6;
+  --text-4: #85858E;
   --serif: 'Cormorant', Georgia, serif;
   --sans: 'Plus Jakarta Sans', system-ui, sans-serif;
   --mono: 'JetBrains Mono', monospace;
@@ -68,18 +68,7 @@ body {
   pointer-events: none;
 }
 
-/* --- NOISE TEXTURE OVERLAY --- */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: 0.018;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 256px 256px;
-}
+/* Noise texture overlay removed — was at 0.018 opacity (invisible, wasted render) */
 
 /* --- NAV --- */
 nav {
@@ -120,7 +109,7 @@ nav.scrolled {
 
 .nav-links a {
   font-family: var(--mono);
-  font-size: 0.68rem;
+  font-size: 0.73rem;
   font-weight: 400;
   color: var(--text-3);
   text-decoration: none;
@@ -172,6 +161,7 @@ nav.scrolled {
   border: none;
   cursor: pointer;
   padding: 6px;
+  border-radius: 4px;
   z-index: 101;
 }
 
@@ -498,7 +488,8 @@ section { position: relative; z-index: 2; }
 
 .stat-card:hover {
   border-left-color: var(--accent);
-  transform: translateX(6px);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.06);
 }
 
 .stat-number {
@@ -934,6 +925,8 @@ section { position: relative; z-index: 2; }
 .form-group textarea:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-dim);
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
   background: #fff;
 }
 
@@ -1215,7 +1208,7 @@ section { position: relative; z-index: 2; }
   width: 6px; height: 6px;
   background: var(--accent);
   border-radius: 50%;
-  animation: agentPulse 2s infinite;
+  animation: agentPulse 2.5s ease-in-out infinite;
 }
 
 .cal-footer-text {
@@ -1242,7 +1235,7 @@ section { position: relative; z-index: 2; }
   width: 5px; height: 5px;
   background: var(--accent);
   border-radius: 50%;
-  animation: agentPulse 2s infinite;
+  animation: agentPulse 2.5s ease-in-out infinite;
 }
 
 /* --- FOOTER --- */
@@ -1314,6 +1307,8 @@ footer {
 }
 
 @media (max-width: 768px) {
+  #bg-canvas { display: none; }
+
   nav { padding: 1rem 1.5rem; }
   nav.scrolled { padding: 0.75rem 1.5rem; }
   .nav-links, .nav-cta { display: none; }
@@ -1348,6 +1343,38 @@ footer {
   .hero-title { font-size: 3.5rem; }
   .container { padding: 0 1.25rem; }
   .stat-number { font-size: 2.2rem; }
+}
+
+/* Touch feedback for mobile */
+@media (hover: none) {
+  .stat-card:active {
+    border-left-color: var(--accent);
+    background: var(--surface-alt);
+  }
+  .service-card:active {
+    border-left-color: var(--accent);
+    background: var(--surface-alt);
+  }
+  .why-card:active {
+    border-top-color: var(--accent);
+    background: var(--surface-alt);
+  }
+  .problem-item:active {
+    padding-left: 1.5rem;
+  }
+  .problem-item:active .problem-index {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .agent-pill:active {
+    background: rgba(15,93,92,0.06);
+    border-color: rgba(15,93,92,0.15);
+  }
+  .cal-day.available:active {
+    background: var(--accent);
+    color: #fff;
+  }
 }
 </style>
 </head>
@@ -1772,6 +1799,8 @@ footer {
 
 .calc-input-field:focus {
   border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 /* Range slider - light theme */
@@ -1964,6 +1993,8 @@ footer {
 
 .calc-report-form input:focus {
   border-color: var(--accent);
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 .calc-report-submit {
@@ -2348,6 +2379,25 @@ calcSubmitBtn.addEventListener('click', function() {
   if (ctaText) ctaText.textContent = 'Get started — save $' + annual.toLocaleString() + '/yr';
 });
 
+// Calculator CTA scrolls to contact and highlights the form
+calcCta.addEventListener('click', function(e) {
+  e.preventDefault();
+  const contact = document.getElementById('contact');
+  if (contact) {
+    contact.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Flash highlight on the contact form
+    const form = document.getElementById('contact-form');
+    if (form) {
+      setTimeout(function() {
+        form.style.transition = 'box-shadow 0.4s ease';
+        form.style.boxShadow = '0 0 0 3px rgba(15,93,92,0.25)';
+        form.style.borderRadius = '4px';
+        setTimeout(function() { form.style.boxShadow = 'none'; }, 1500);
+      }, 600);
+    }
+  }
+});
+
 // Reset button
 calcResetBtn.addEventListener('click', function() {
   calcResults.style.display = 'none';
@@ -2623,6 +2673,9 @@ contactForm.addEventListener('submit', async (e) => {
 <script>
 // --- INTERACTIVE BACKGROUND ---
 (function() {
+  // Skip canvas animation on mobile for performance
+  if (window.innerWidth <= 768) return;
+
   const canvas = document.getElementById('bg-canvas');
   const ctx = canvas.getContext('2d');
   let W, H, dots = [];
