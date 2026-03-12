@@ -24,7 +24,7 @@
   --text: #1A1A1E;
   --text-2: #3D3D44;
   --text-3: #6B6B74;
-  --text-4: #85858E;
+  --text-4: #6E6E78;
   --serif: 'Cormorant', Georgia, serif;
   --sans: 'Plus Jakarta Sans', system-ui, sans-serif;
   --mono: 'JetBrains Mono', monospace;
@@ -134,14 +134,14 @@ nav.scrolled {
 
 .nav-cta {
   font-family: var(--mono);
-  font-size: 0.68rem;
+  font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: #fff;
   background: var(--accent);
   border: none;
-  padding: 0.65rem 1.75rem;
+  padding: 0.75rem 1.75rem;
   cursor: pointer;
   text-decoration: none;
   transition: all 0.4s var(--ease);
@@ -218,7 +218,7 @@ nav.scrolled {
 .mobile-menu a:hover { color: var(--accent); }
 
 /* --- SECTIONS --- */
-section { position: relative; z-index: 2; }
+section { position: relative; z-index: 2; scroll-margin-top: 80px; }
 
 .container {
   max-width: 1200px;
@@ -872,9 +872,9 @@ section { position: relative; z-index: 2; }
 
 .form-group label {
   font-family: var(--mono);
-  font-size: 0.65rem;
+  font-size: 0.8rem;
   font-weight: 500;
-  letter-spacing: 0.15em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--text-3);
 }
@@ -883,7 +883,7 @@ section { position: relative; z-index: 2; }
 .form-group select,
 .form-group textarea {
   font-family: var(--sans);
-  font-size: 0.92rem;
+  font-size: 1rem;
   font-weight: 300;
   color: var(--text);
   background: var(--surface);
@@ -1070,7 +1070,7 @@ section { position: relative; z-index: 2; }
 }
 
 .booking-wrapper.open {
-  max-height: 1100px;
+  max-height: none;
   opacity: 1;
   margin-top: 2rem;
 }
@@ -1272,7 +1272,7 @@ section { position: relative; z-index: 2; }
 
 .timeslot-btn {
   font-family: var(--mono);
-  font-size: 0.72rem;
+  font-size: 0.82rem;
   font-weight: 500;
   color: var(--text-2);
   background: var(--surface-alt);
@@ -1317,7 +1317,7 @@ section { position: relative; z-index: 2; }
 
 .timeslot-form .form-group label {
   font-family: var(--mono);
-  font-size: 0.62rem;
+  font-size: 0.8rem;
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1326,7 +1326,7 @@ section { position: relative; z-index: 2; }
 
 .timeslot-form .form-group input {
   font-family: var(--sans);
-  font-size: 0.88rem;
+  font-size: 1rem;
   font-weight: 300;
   color: var(--text);
   background: var(--surface-alt);
@@ -1348,16 +1348,16 @@ section { position: relative; z-index: 2; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.6rem;
+  gap: 0.75rem;
   font-family: var(--mono);
-  font-size: 0.72rem;
+  font-size: 0.75rem;
   font-weight: 500;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #fff;
   background: var(--accent);
   border: none;
-  padding: 0.9rem 2rem;
+  padding: 1rem 2.5rem;
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.4s var(--ease);
@@ -1402,6 +1402,19 @@ section { position: relative; z-index: 2; }
   font-weight: 700;
   color: var(--accent);
   margin-bottom: 0.35rem;
+}
+
+.timeslot-success-detail {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--accent-dim);
+  border: 1px solid var(--border-accent);
+  border-radius: 2px;
+  display: inline-block;
 }
 
 .timeslot-success-text {
@@ -1453,7 +1466,7 @@ section { position: relative; z-index: 2; }
 
 .custom-time-form .form-group input {
   font-family: var(--sans);
-  font-size: 0.88rem;
+  font-size: 1rem;
   font-weight: 300;
   color: var(--text);
   background: var(--surface-alt);
@@ -1474,7 +1487,7 @@ section { position: relative; z-index: 2; }
 
 .custom-time-form .form-group label {
   font-family: var(--mono);
-  font-size: 0.62rem;
+  font-size: 0.8rem;
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -1520,6 +1533,23 @@ footer {
 }
 
 .footer-text span { color: var(--accent); }
+
+/* --- FOCUS STATES FOR KEYBOARD ACCESSIBILITY --- */
+.hero-cta:focus-visible,
+.nav-cta:focus-visible,
+.form-submit:focus-visible,
+.calc-submit-btn:focus-visible,
+.calc-cta-btn:focus-visible,
+.calc-cta-link:focus-visible,
+.calc-reset-btn:focus-visible,
+.booking-toggle-btn:focus-visible,
+.timeslot-btn:focus-visible,
+.timeslot-submit:focus-visible,
+.custom-time-btn:focus-visible,
+.cal-nav button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 
 /* --- ANIMATIONS --- */
 @keyframes fadeUp {
@@ -1650,7 +1680,7 @@ footer {
 <canvas id="bg-canvas"></canvas>
 
 <!-- NAVIGATION -->
-<nav id="navbar">
+<nav id="navbar" role="navigation" aria-label="Main navigation">
   <a href="#" class="nav-brand">Serswe<span>AI</span></a>
   <ul class="nav-links">
     <li><a href="#problems">Problem</a></li>
@@ -1661,13 +1691,13 @@ footer {
     <li><a href="#contact">Contact</a></li>
   </ul>
   <a href="#contact" class="nav-cta" id="nav-book-call">Book a Call</a>
-  <button class="hamburger" id="hamburger" aria-label="Menu">
+  <button class="hamburger" id="hamburger" aria-label="Menu" aria-expanded="false">
     <span></span><span></span><span></span>
   </button>
 </nav>
 
 <!-- MOBILE MENU -->
-<div class="mobile-menu" id="mobile-menu">
+<div class="mobile-menu" id="mobile-menu" role="menu" aria-label="Mobile navigation">
   <a href="#problems" onclick="closeMobile()">Problem</a>
   <a href="#services" onclick="closeMobile()">Services</a>
   <a href="/team.html">Team</a>
@@ -2601,6 +2631,7 @@ footer {
             <div class="timeslot-success" id="timeslot-success">
               <div class="timeslot-success-icon">&#10003;</div>
               <div class="timeslot-success-title">Meeting Requested!</div>
+              <div class="timeslot-success-detail" id="timeslot-success-detail"></div>
               <div class="timeslot-success-text">We'll send you a calendar invite shortly at the email you provided.</div>
             </div>
           </div>
@@ -2809,6 +2840,7 @@ hamburger.addEventListener('click', () => {
   } else {
     mobileMenu.style.display = 'flex';
     hamburger.classList.add('active');
+    hamburger.setAttribute('aria-expanded', 'true');
     requestAnimationFrame(() => mobileMenu.classList.add('active'));
   }
 });
@@ -2816,6 +2848,7 @@ hamburger.addEventListener('click', () => {
 function closeMobile() {
   mobileMenu.classList.remove('active');
   hamburger.classList.remove('active');
+  hamburger.setAttribute('aria-expanded', 'false');
   setTimeout(() => { mobileMenu.style.display = 'none'; }, 500);
 }
 
@@ -2921,10 +2954,11 @@ function renderCalendar() {
     const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
     if (isAvailable && selectedDate === dateStr) cls += ' selected';
 
+    const ariaLabel = `${monthNames[month]} ${d}, ${year}${isAvailable ? ' - available' : ''}`;
     if (isAvailable) {
-      html += `<span class="${cls}" data-date="${dateStr}">${d}</span>`;
+      html += `<span class="${cls}" data-date="${dateStr}" role="button" tabindex="0" aria-label="${ariaLabel}">${d}</span>`;
     } else {
-      html += `<span class="${cls}">${d}</span>`;
+      html += `<span class="${cls}" aria-label="${ariaLabel}" aria-disabled="true">${d}</span>`;
     }
   }
 
@@ -2971,6 +3005,15 @@ function showTimeSlots(dateStr) {
   form.classList.remove('active');
   success.classList.remove('visible');
   success.style.display = 'none';
+  // Reset custom time
+  document.getElementById('custom-time-toggle').style.display = '';
+  document.getElementById('custom-time-form').classList.remove('active');
+  document.getElementById('custom-time-btn').textContent = 'Request Another Time';
+
+  // Scroll time slot panel into view
+  setTimeout(function() {
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, 100);
 
   // Time slot click handlers
   grid.querySelectorAll('.timeslot-btn').forEach(btn => {
@@ -2979,6 +3022,10 @@ function showTimeSlots(dateStr) {
       btn.classList.add('selected');
       selectedTime = btn.dataset.time;
       form.classList.add('active');
+      // Scroll form into view
+      setTimeout(function() {
+        form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
     });
   });
 }
@@ -3054,6 +3101,11 @@ document.getElementById('custom-submit').addEventListener('click', async functio
     document.getElementById('timeslot-back').style.display = 'none';
     document.getElementById('timeslot-form').classList.remove('active');
     const success = document.getElementById('timeslot-success');
+    // Show booked details
+    const [cy, cm, cd] = date.split('-').map(Number);
+    const cDateObj = new Date(cy, cm - 1, cd);
+    document.getElementById('timeslot-success-detail').textContent =
+      dayNames[cDateObj.getDay()] + ', ' + monthNames[cm - 1] + ' ' + cd + ' at ' + displayTime + ' PT';
     success.style.display = 'block';
     success.classList.add('visible');
   } catch (e) {
@@ -3099,7 +3151,13 @@ document.getElementById('timeslot-submit').addEventListener('click', async funct
     document.getElementById('timeslot-form').classList.remove('active');
     document.getElementById('timeslot-grid').style.display = 'none';
     document.getElementById('timeslot-back').style.display = 'none';
+    document.getElementById('custom-time-toggle').style.display = 'none';
     const success = document.getElementById('timeslot-success');
+    // Show booked details
+    const [sy, sm, sd] = selectedDate.split('-').map(Number);
+    const sDateObj = new Date(sy, sm - 1, sd);
+    document.getElementById('timeslot-success-detail').textContent =
+      dayNames[sDateObj.getDay()] + ', ' + monthNames[sm - 1] + ' ' + sd + ' at ' + selectedTime + ' PT';
     success.style.display = 'block';
     success.classList.add('visible');
   } catch (e) {
