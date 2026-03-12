@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import LeadTimeline from './LeadTimeline';
 
 export type Lead = {
@@ -593,85 +593,17 @@ export default function LeadTable(_props: Props) {
                     {lead.summary || '—'}
                   </td>
                   <td>
-                    <div className="row-actions">
-                      {lead.website && !lead.notes && (
-                        <button
-                          onClick={() => enrichSingleLead(lead.id)}
-                          className="secondary"
-                          disabled={!!enrichingLeads[lead.id]}
-                          style={{ color: '#f59e0b', borderColor: '#fde68a' }}
-                        >
-                          {enrichingLeads[lead.id] ? 'Enriching...' : 'Enrich'}
-                        </button>
-                      )}
-                      <button
-                        onClick={() => sendEmail(lead.id, 'email1')}
-                        className="secondary"
-                        disabled={!lead.email || !!sendingLeads[`${lead.id}:email1`]}
-                      >
-                        {sendingLeads[`${lead.id}:email1`] ? 'Sending...' : 'Send Email 1'}
-                      </button>
-                      <button
-                        onClick={() => sendEmail(lead.id, 'email2')}
-                        className="secondary"
-                        disabled={!lead.email || !!sendingLeads[`${lead.id}:email2`]}
-                      >
-                        {sendingLeads[`${lead.id}:email2`] ? 'Sending...' : 'Send Email 2'}
-                      </button>
-                      <button
-                        onClick={() => sendEmail(lead.id, 'email3')}
-                        className="secondary"
-                        disabled={!lead.email || !!sendingLeads[`${lead.id}:email3`]}
-                      >
-                        {sendingLeads[`${lead.id}:email3`] ? 'Sending...' : 'Send Email 3'}
-                      </button>
-                      {lead.status === 'Email 3 Sent' && (
-                        <button
-                          onClick={() => sendEmail(lead.id, 'email4')}
-                          className="secondary"
-                          disabled={!lead.email || !!sendingLeads[`${lead.id}:email4`]}
-                        >
-                          {sendingLeads[`${lead.id}:email4`] ? 'Sending...' : 'Send Email 4'}
-                        </button>
-                      )}
-                      <button
-                        className="ghost"
-                        onClick={() => updateLead(lead.id, { status: 'Replied' })}
-                      >
-                        Mark Replied
-                      </button>
-                      <button
-                        className="ghost"
-                        onClick={() => updateLead(lead.id, { status: 'Do Not Contact' })}
-                      >
-                        DNC
-                      </button>
-                      {lead.status === 'Replied' && (
-                        <button
-                          className="ghost"
-                          onClick={() => convertToDeal(lead)}
-                          disabled={!!convertingLeads[lead.id]}
-                          style={{ color: '#16a34a', borderColor: '#bbf7d0' }}
-                        >
-                          {convertingLeads[lead.id] ? 'Converting...' : 'Convert to Deal'}
-                        </button>
-                      )}
-                      {!lead.email && lead.contact_form_url && (
-                        <button
-                          className="secondary"
-                          onClick={() => {
-                            const msg = `Hi, I'm Neil from SersweAI. We help ${lead.category || 'local'} businesses save time by automating repetitive admin work. Would you be open to a quick call to discuss how we could help ${lead.company_name}? You can learn more at sersweai.com`;
-                            navigator.clipboard.writeText(msg);
-                            window.open(lead.contact_form_url!, '_blank');
-                            updateLead(lead.id, { status: 'Email 1 Sent' });
-                            setNotice('Message copied to clipboard — paste it in the contact form!');
-                          }}
-                          style={{ color: '#7c3aed', borderColor: '#c4b5fd' }}
-                        >
-                          Reach Out
-                        </button>
-                      )}
-                    </div>
+                    <LeadActions
+                      lead={lead}
+                      sendingLeads={sendingLeads}
+                      enrichingLeads={enrichingLeads}
+                      convertingLeads={convertingLeads}
+                      onSendEmail={sendEmail}
+                      onEnrich={enrichSingleLead}
+                      onUpdateLead={updateLead}
+                      onConvertToDeal={convertToDeal}
+                      onNotice={setNotice}
+                    />
                   </td>
                 </tr>
               ))
@@ -684,6 +616,143 @@ export default function LeadTable(_props: Props) {
           leadId={timelineLeadId}
           onClose={() => setTimelineLeadId(null)}
         />
+      )}
+    </div>
+  );
+}
+
+/* ── Contextual Lead Actions ── */
+
+type LeadActionsProps = {
+  lead: Lead;
+  sendingLeads: Record<string, string>;
+  enrichingLeads: Record<string, boolean>;
+  convertingLeads: Record<string, boolean>;
+  onSendEmail: (leadId: string, template: string) => void;
+  onEnrich: (leadId: string) => void;
+  onUpdateLead: (id: string, updates: Partial<Lead>) => void;
+  onConvertToDeal: (lead: Lead) => void;
+  onNotice: (msg: string) => void;
+};
+
+function getNextEmailTemplate(status: string | null): { template: string; label: string } | null {
+  switch (status) {
+    case null:
+    case 'Not Contacted': return { template: 'email1', label: 'Send Email 1' };
+    case 'Email 1 Sent':  return { template: 'email2', label: 'Send Email 2' };
+    case 'Email 2 Sent':  return { template: 'email3', label: 'Send Email 3' };
+    case 'Email 3 Sent':  return { template: 'email4', label: 'Send Email 4' };
+    default: return null;
+  }
+}
+
+function LeadActions({ lead, sendingLeads, enrichingLeads, convertingLeads, onSendEmail, onEnrich, onUpdateLead, onConvertToDeal, onNotice }: LeadActionsProps) {
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    if (!open) return;
+    function handleClick(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [open]);
+
+  const nextEmail = getNextEmailTemplate(lead.status);
+  const isSending = nextEmail ? !!sendingLeads[`${lead.id}:${nextEmail.template}`] : false;
+  const needsEnrich = lead.website && !lead.notes;
+  const isContactFormLead = !lead.email && lead.contact_form_url;
+
+  return (
+    <div className="lead-actions" ref={dropdownRef}>
+      {/* Primary action: next logical step */}
+      {needsEnrich && (
+        <button
+          onClick={() => onEnrich(lead.id)}
+          className="action-primary secondary"
+          disabled={!!enrichingLeads[lead.id]}
+          style={{ color: '#f59e0b', borderColor: '#fde68a' }}
+        >
+          {enrichingLeads[lead.id] ? 'Enriching…' : 'Enrich'}
+        </button>
+      )}
+
+      {lead.status === 'Replied' ? (
+        <button
+          onClick={() => onConvertToDeal(lead)}
+          className="action-primary secondary"
+          disabled={!!convertingLeads[lead.id]}
+          style={{ color: 'var(--success-text)', borderColor: 'var(--success-border)' }}
+        >
+          {convertingLeads[lead.id] ? 'Converting…' : 'Convert to Deal'}
+        </button>
+      ) : isContactFormLead ? (
+        <button
+          className="action-primary secondary"
+          onClick={() => {
+            const msg = `Hi, I'm Neil from SersweAI. We help ${lead.category || 'local'} businesses save time by automating repetitive admin work. Would you be open to a quick call to discuss how we could help ${lead.company_name}? You can learn more at sersweai.com`;
+            navigator.clipboard.writeText(msg);
+            window.open(lead.contact_form_url!, '_blank');
+            onUpdateLead(lead.id, { status: 'Email 1 Sent' });
+            onNotice('Message copied to clipboard — paste it in the contact form!');
+          }}
+          style={{ color: '#7c3aed', borderColor: '#c4b5fd' }}
+        >
+          Reach Out
+        </button>
+      ) : nextEmail && lead.email ? (
+        <button
+          onClick={() => onSendEmail(lead.id, nextEmail.template)}
+          className="action-primary secondary"
+          disabled={isSending}
+        >
+          {isSending ? 'Sending…' : nextEmail.label}
+        </button>
+      ) : null}
+
+      {/* More actions dropdown */}
+      <button
+        className="action-more-btn"
+        onClick={() => setOpen(v => !v)}
+        type="button"
+        aria-label="More actions"
+        aria-expanded={open}
+      >
+        ···
+      </button>
+
+      {open && (
+        <div className="action-dropdown">
+          {/* All email options (except the primary one already shown) */}
+          {lead.email && ['email1', 'email2', 'email3', 'email4'].map(tmpl => {
+            const label = `Send Email ${tmpl.replace('email', '')}`;
+            if (nextEmail?.template === tmpl) return null;
+            if (tmpl === 'email4' && lead.status !== 'Email 3 Sent') return null;
+            const sending = !!sendingLeads[`${lead.id}:${tmpl}`];
+            return (
+              <button
+                key={tmpl}
+                onClick={() => { onSendEmail(lead.id, tmpl); setOpen(false); }}
+                disabled={sending}
+              >
+                {sending ? 'Sending…' : label}
+              </button>
+            );
+          })}
+          <button onClick={() => { onUpdateLead(lead.id, { status: 'Replied' }); setOpen(false); }}>
+            Mark Replied
+          </button>
+          <button
+            className="action-danger"
+            onClick={() => { onUpdateLead(lead.id, { status: 'Do Not Contact' }); setOpen(false); }}
+          >
+            Do Not Contact
+          </button>
+        </div>
       )}
     </div>
   );

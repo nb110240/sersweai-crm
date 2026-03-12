@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import LeadTable from '../../components/LeadTable';
+import CrmNav from '../../components/CrmNav';
 
 export default function HomePage() {
   const [password, setPassword] = useState('');
@@ -100,33 +101,7 @@ export default function HomePage() {
 
   return (
     <div className="app-shell">
-      <div className="topbar">
-        <div className="brand">
-          <div className="brand-mark" />
-          <div>
-            <div className="brand-title">SersweAI CRM</div>
-            <div className="brand-sub">Solo outreach workspace</div>
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <a href="/crm/dashboard" style={{ fontSize: 13, padding: '6px 12px', borderRadius: 10, border: '1px solid var(--border)', textDecoration: 'none', color: 'var(--ink)' }}>
-            Dashboard
-          </a>
-          <a href="/crm/deals" style={{ fontSize: 13, padding: '6px 12px', borderRadius: 10, border: '1px solid var(--border)', textDecoration: 'none', color: 'var(--ink)' }}>
-            Deals →
-          </a>
-          <a href="/crm/calendar" style={{ fontSize: 13, padding: '6px 12px', borderRadius: 10, border: '1px solid var(--border)', textDecoration: 'none', color: 'var(--ink)' }}>
-            Calendar →
-          </a>
-          <button
-            onClick={handleLogout}
-            style={{ fontSize: 13, padding: '6px 12px', borderRadius: 10, border: '1px solid var(--border)', background: 'none', cursor: 'pointer', color: 'var(--ink)' }}
-          >
-            Logout
-          </button>
-          <div className="badge">CRM · MVP</div>
-        </div>
-      </div>
+      <CrmNav current="/crm" subtitle="Pipeline" onLogout={handleLogout} />
       <div className="container">
         <div className="header">
           <div>

@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import CrmNav from '../../../components/CrmNav';
 
 const STATUS_ORDER = [
   'Not Contacted',
@@ -13,13 +14,13 @@ const STATUS_ORDER = [
 ];
 
 const STATUS_COLOR: Record<string, string> = {
-  'Not Contacted':  '#9ca3af',
-  'Email 1 Sent':   '#3b82f6',
-  'Email 2 Sent':   '#6366f1',
-  'Email 3 Sent':   '#f97316',
-  'Replied':        '#22c55e',
-  'Not Fit':        '#ef4444',
-  'Do Not Contact': '#4b5563',
+  'Not Contacted':  'var(--status-gray)',
+  'Email 1 Sent':   'var(--status-blue)',
+  'Email 2 Sent':   'var(--status-indigo)',
+  'Email 3 Sent':   'var(--status-orange)',
+  'Replied':        'var(--status-green)',
+  'Not Fit':        'var(--status-red)',
+  'Do Not Contact': 'var(--status-dark)',
 };
 
 const TEMPLATE_LABEL: Record<string, string> = {
@@ -30,6 +31,7 @@ const TEMPLATE_LABEL: Record<string, string> = {
 
 function timeAgo(dateStr: string) {
   const diff = Date.now() - new Date(dateStr).getTime();
+  if (diff < 0) return 'just now';
   const m = Math.floor(diff / 60000);
   if (m < 1) return 'just now';
   if (m < 60) return `${m}m ago`;
@@ -38,19 +40,70 @@ function timeAgo(dateStr: string) {
   return `${Math.floor(h / 24)}d ago`;
 }
 
-export default function DashboardPage() {
-  const [stats, setStats] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+interface StatsData {
+  leads?: {
+    total?: number;
+    withEmail?: number;
+    addedToday?: number;
+    byStatus?: Record<string, number>;
+  };
+  emails?: {
+    sentToday?: number;
+    sentThisWeek?: number;
+    totalSent?: number;
+    byTemplate?: Record<string, number>;
+    recent?: Array<{
+      id: string;
+      template: string;
+      to_email: string;
+      sent_at: string;
+      leads?: { company_name?: string; category?: string };
+    }>;
+  };
+  traffic?: {
+    viewsToday?: number;
+    uniqueToday?: number;
+    viewsThisWeek?: number;
+    uniqueThisWeek?: number;
+    topPages?: Array<{ path: string; views: number }>;
+  };
+  recentOpens?: Array<{
+    lead_id: string;
+    company_name: string;
+    template?: string;
+    opened_at: string;
+  }>;
+  recentClicks?: Array<{
+    lead_id: string;
+    company_name: string;
+    url_hostname: string;
+    clicked_at: string;
+  }>;
+}
 
-  useEffect(() => {
+export default function DashboardPage() {
+  const [stats, setStats] = useState<StatsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchStats = useCallback(() => {
+    setError(null);
     fetch('/api/stats')
       .then(r => {
         if (r.status === 401) { window.location.href = '/crm'; return null; }
+        if (!r.ok) throw new Error(`Failed to load stats (${r.status})`);
         return r.json();
       })
-      .then(d => { if (d) setStats(d); setLoading(false); })
-      .catch(() => setLoading(false));
+      .then(d => { if (d) setStats(d); })
+      .catch(e => setError(e.message || 'Failed to load dashboard data'))
+      .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    fetchStats();
+    const interval = setInterval(fetchStats, 60_000);
+    return () => clearInterval(interval);
+  }, [fetchStats]);
 
   const totalLeads = stats?.leads?.total || 0;
   const sentToday = stats?.emails?.sentToday || 0;
@@ -67,157 +120,164 @@ export default function DashboardPage() {
 
   return (
     <div className="app-shell">
-      <div className="topbar">
-        <div className="brand">
-          <div className="brand-mark" />
+      <CrmNav current="/crm/dashboard" subtitle="Dashboard" />
+
+      <main className="container">
+        <div className="header">
           <div>
-            <div className="brand-title">SersweAI CRM</div>
-            <div className="brand-sub">Dashboard</div>
+            <h1>Campaign Dashboard</h1>
+            <p className="tagline">Live view of your daily lead gen + outreach pipeline.</p>
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <a href="/crm" style={{ fontSize: 13, padding: '6px 12px', borderRadius: 10, border: '1px solid var(--border)', textDecoration: 'none', color: 'var(--ink)' }}>
-            ← Pipeline
-          </a>
-          <a href="/crm/calendar" style={{ fontSize: 13, padding: '6px 12px', borderRadius: 10, border: '1px solid var(--border)', textDecoration: 'none', color: 'var(--ink)' }}>
-            Calendar →
-          </a>
-          <div className="badge">Dashboard</div>
-        </div>
-      </div>
 
-      <div className="container">
-        <div className="header">
-          <h1>Campaign Dashboard</h1>
-          <p className="tagline">Live view of your daily lead gen + outreach pipeline.</p>
-        </div>
+        {/* Error state */}
+        {error && (
+          <div className="error-banner" role="alert">
+            <span>{error}</span>
+            <button onClick={fetchStats} type="button">Retry</button>
+          </div>
+        )}
 
+        {/* Loading skeleton */}
         {loading ? (
-          <p style={{ color: 'var(--muted)', fontSize: 14 }}>Loading...</p>
-        ) : (
+          <div aria-busy="true" aria-label="Loading dashboard data">
+            <div className="stat-grid">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="skeleton skeleton-card" />
+              ))}
+            </div>
+            <div className="skeleton skeleton-bar" style={{ marginBottom: 24 }} />
+            <div className="skeleton skeleton-bar" style={{ marginBottom: 24 }} />
+            <div className="two-col-grid">
+              <div className="skeleton skeleton-block" />
+              <div className="skeleton skeleton-block" />
+            </div>
+          </div>
+        ) : stats && (
           <>
-            {/* Top stat cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginBottom: 24 }}>
-              <StatCard label="Total Leads" value={totalLeads} sub={`${stats?.leads?.withEmail || 0} have email`} color="var(--accent)" />
-              <StatCard label="Added Today" value={stats?.leads?.addedToday || 0} sub="from lead gen" color="#6366f1" />
-              <StatCard label="Emails Sent Today" value={`${sentToday} / ${dailyLimit}`} sub={`${pct}% of daily quota`} color="#f97316" />
-              <StatCard label="Sent This Week" value={stats?.emails?.sentThisWeek || 0} sub={`Mon–Sun · Email 1: ${stats?.emails?.byTemplate?.email1 || 0}  ·  2: ${stats?.emails?.byTemplate?.email2 || 0}  ·  3: ${stats?.emails?.byTemplate?.email3 || 0}`} color="#3b82f6" />
-              <StatCard label="Total Emails Sent" value={stats?.emails?.totalSent || 0} sub="all time" color="#8b5cf6" />
-              <StatCard label="Replied" value={stats?.leads?.byStatus?.['Replied'] || 0} sub={totalLeads ? `${Math.round(((stats?.leads?.byStatus?.['Replied'] || 0) / totalLeads) * 100)}% reply rate` : '—'} color="#22c55e" />
+            {/* Stat cards */}
+            <div className="stat-grid" role="region" aria-label="Key metrics">
+              <StatCard label="Total Leads" value={totalLeads} sub={`${stats.leads?.withEmail || 0} have email`} color="var(--accent)" />
+              <StatCard label="Added Today" value={stats.leads?.addedToday || 0} sub="from lead gen" color="var(--status-indigo)" />
+              <StatCard label="Emails Today" value={`${sentToday} / ${dailyLimit}`} sub={`${pct}% of daily quota`} color="var(--status-orange)" />
+              <StatCard label="Sent This Week" value={stats.emails?.sentThisWeek || 0} sub={`Mon–Sun · E1: ${stats.emails?.byTemplate?.email1 || 0} · E2: ${stats.emails?.byTemplate?.email2 || 0} · E3: ${stats.emails?.byTemplate?.email3 || 0}`} color="var(--status-blue)" />
+              <StatCard label="Total Sent" value={stats.emails?.totalSent || 0} sub="all time" color="var(--status-purple)" />
+              <StatCard label="Replied" value={stats.leads?.byStatus?.['Replied'] || 0} sub={totalLeads ? `${Math.round(((stats.leads?.byStatus?.['Replied'] || 0) / totalLeads) * 100)}% reply rate` : '—'} color="var(--status-green)" />
             </div>
 
-            {/* Daily quota bar */}
-            <div className="card" style={{ padding: '20px 24px', marginBottom: 24 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: 'var(--ink)' }}>Today's Send Quota</span>
-                <span style={{ fontSize: 13, color: 'var(--muted)' }}>{sentToday} of {dailyLimit} emails sent</span>
+            {/* Daily quota */}
+            <div className="card-section" style={{ marginBottom: 24 }}>
+              <div className="quota-header">
+                <span className="quota-label">Today&apos;s Send Quota</span>
+                <span className="quota-count">{sentToday} of {dailyLimit} emails sent</span>
               </div>
-              <div style={{ height: 10, background: 'var(--border)', borderRadius: 99, overflow: 'hidden' }}>
-                <div style={{ height: '100%', width: `${pct}%`, background: pct >= 100 ? '#22c55e' : 'var(--accent)', borderRadius: 99, transition: 'width 0.4s ease' }} />
+              <div
+                className="progress-track"
+                role="progressbar"
+                aria-valuenow={sentToday}
+                aria-valuemin={0}
+                aria-valuemax={dailyLimit}
+                aria-label={`${sentToday} of ${dailyLimit} emails sent today`}
+              >
+                <div
+                  className="progress-fill"
+                  style={{
+                    width: `${pct}%`,
+                    background: pct >= 100 ? 'var(--status-green)' : 'var(--accent)',
+                  }}
+                />
               </div>
-              <div style={{ display: 'flex', gap: 16, marginTop: 12, fontSize: 12, color: 'var(--muted)' }}>
-                {Object.entries(stats?.emails?.byTemplate || {}).map(([k, v]) => (
+              <div className="quota-breakdown">
+                {Object.entries(stats.emails?.byTemplate || {}).map(([k, v]) => (
                   <span key={k}><strong style={{ color: 'var(--ink)' }}>{v as number}</strong> {TEMPLATE_LABEL[k] || k}</span>
                 ))}
-                {sentToday === 0 && <span>No emails sent yet today — auto-send runs at 7 AM PT</span>}
+                {sentToday === 0 && <span>No emails sent yet — auto-send runs at 7 AM PT</span>}
               </div>
             </div>
 
             {/* Website Traffic */}
-            <div className="card" style={{ padding: '20px 24px', marginBottom: 24 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 16, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Website Traffic
+            <div className="card-section" style={{ marginBottom: 24 }}>
+              <div className="section-title">Website Traffic</div>
+              <div className="traffic-grid">
+                <TrafficStat value={stats.traffic?.viewsToday ?? 0} label="Views Today" color="var(--status-purple)" />
+                <TrafficStat value={stats.traffic?.uniqueToday ?? 0} label="Unique Today" color="var(--status-purple)" />
+                <TrafficStat value={stats.traffic?.viewsThisWeek ?? 0} label="Views This Week" color="var(--status-indigo)" />
+                <TrafficStat value={stats.traffic?.uniqueThisWeek ?? 0} label="Unique This Week" color="var(--status-indigo)" />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 16 }}>
+              {(stats.traffic?.topPages || []).length > 0 ? (
                 <div>
-                  <div style={{ fontSize: 22, fontWeight: 700, color: '#8b5cf6' }}>{stats?.traffic?.viewsToday ?? 0}</div>
-                  <div style={{ fontSize: 11, color: 'var(--muted)' }}>Views Today</div>
-                </div>
-                <div>
-                  <div style={{ fontSize: 22, fontWeight: 700, color: '#8b5cf6' }}>{stats?.traffic?.uniqueToday ?? 0}</div>
-                  <div style={{ fontSize: 11, color: 'var(--muted)' }}>Unique Today</div>
-                </div>
-                <div>
-                  <div style={{ fontSize: 22, fontWeight: 700, color: '#6366f1' }}>{stats?.traffic?.viewsThisWeek ?? 0}</div>
-                  <div style={{ fontSize: 11, color: 'var(--muted)' }}>Views This Week</div>
-                </div>
-                <div>
-                  <div style={{ fontSize: 22, fontWeight: 700, color: '#6366f1' }}>{stats?.traffic?.uniqueThisWeek ?? 0}</div>
-                  <div style={{ fontSize: 11, color: 'var(--muted)' }}>Unique This Week</div>
-                </div>
-              </div>
-              {(stats?.traffic?.topPages || []).length > 0 && (
-                <div>
-                  <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Top Pages</div>
-                  {(stats?.traffic?.topPages || []).map((p: any) => (
-                    <div key={p.path} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', fontSize: 13, borderBottom: '1px solid var(--border)' }}>
-                      <span style={{ color: 'var(--ink)', fontFamily: 'monospace', fontSize: 12 }}>{p.path}</span>
-                      <span style={{ fontWeight: 600, color: 'var(--ink)' }}>{p.views}</span>
+                  <div className="section-title" style={{ fontSize: 11, marginBottom: 8 }}>Top Pages</div>
+                  {(stats.traffic?.topPages || []).map(p => (
+                    <div key={p.path} className="top-pages-row">
+                      <span style={{ fontFamily: 'monospace', fontSize: 12 }}>{p.path}</span>
+                      <span style={{ fontWeight: 600 }}>{p.views}</span>
                     </div>
                   ))}
                 </div>
-              )}
-              {(stats?.traffic?.topPages || []).length === 0 && (
-                <p style={{ fontSize: 13, color: 'var(--muted)' }}>No page views recorded yet.</p>
+              ) : (
+                <p className="empty-state">No page views recorded yet.</p>
               )}
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            {/* Two-column: Funnel + Recent Sends */}
+            <div className="two-col-grid" style={{ marginBottom: 20 }}>
               {/* Funnel */}
-              <div className="card" style={{ padding: '20px 24px' }}>
-                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 16, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Outreach Funnel
-                </div>
+              <div className="card-section" role="region" aria-label="Outreach funnel">
+                <div className="section-title">Outreach Funnel</div>
                 {funnelStatuses.map(status => {
-                  const count = stats?.leads?.byStatus?.[status] || 0;
+                  const count = stats.leads?.byStatus?.[status] || 0;
                   const barPct = Math.round((count / maxFunnelCount) * 100);
                   return (
-                    <div key={status} style={{ marginBottom: 12 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 4 }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <span style={{ width: 8, height: 8, borderRadius: '50%', background: STATUS_COLOR[status], display: 'inline-block' }} />
+                    <div key={status} className="funnel-row">
+                      <div className="funnel-header">
+                        <span className="funnel-status">
+                          <span className="funnel-dot" style={{ background: STATUS_COLOR[status] }} aria-hidden="true" />
                           {status}
                         </span>
-                        <span style={{ fontWeight: 600, color: 'var(--ink)' }}>{count}</span>
+                        <span className="funnel-count">{count}</span>
                       </div>
-                      <div style={{ height: 6, background: 'var(--border)', borderRadius: 99, overflow: 'hidden' }}>
-                        <div style={{ height: '100%', width: `${barPct}%`, background: STATUS_COLOR[status], borderRadius: 99 }} />
+                      <div
+                        className="funnel-bar-track"
+                        role="progressbar"
+                        aria-valuenow={count}
+                        aria-valuemin={0}
+                        aria-valuemax={maxFunnelCount}
+                        aria-label={`${status}: ${count} leads`}
+                      >
+                        <div className="funnel-bar-fill" style={{ width: `${barPct}%`, background: STATUS_COLOR[status] }} />
                       </div>
                     </div>
                   );
                 })}
-                {/* Suppressed */}
                 {(['Not Fit', 'Do Not Contact'] as const).map(s => {
-                  const count = stats?.leads?.byStatus?.[s] || 0;
+                  const count = stats.leads?.byStatus?.[s] || 0;
                   if (!count) return null;
                   return (
-                    <div key={s} style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>
-                      <span style={{ width: 6, height: 6, borderRadius: '50%', background: STATUS_COLOR[s], display: 'inline-block', marginRight: 6 }} />
+                    <div key={s} className="suppressed-item">
+                      <span className="suppressed-dot" style={{ background: STATUS_COLOR[s] }} aria-hidden="true" />
                       {s}: {count}
                     </div>
                   );
                 })}
               </div>
 
-              {/* Recent sends */}
-              <div className="card" style={{ padding: '20px 24px' }}>
-                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 16, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Recent Sends
-                </div>
-                {(stats?.emails?.recent || []).length === 0 ? (
-                  <p style={{ fontSize: 13, color: 'var(--muted)' }}>No emails sent yet.</p>
+              {/* Recent Sends */}
+              <div className="card-section">
+                <div className="section-title">Recent Sends</div>
+                {(stats.emails?.recent || []).length === 0 ? (
+                  <p className="empty-state">No emails sent yet.</p>
                 ) : (
-                  (stats?.emails?.recent || []).map((e: any) => (
-                    <div key={e.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
+                  (stats.emails?.recent || []).map(e => (
+                    <div key={e.id} className="activity-row">
                       <div>
-                        <div style={{ fontWeight: 600, color: 'var(--ink)' }}>{(e.leads as any)?.company_name || e.to_email}</div>
-                        <div style={{ fontSize: 11, color: 'var(--muted)' }}>{(e.leads as any)?.category || ''}</div>
+                        <div className="activity-name">{e.leads?.company_name || e.to_email}</div>
+                        <div className="activity-meta">{e.leads?.category || ''}</div>
                       </div>
                       <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 6, background: '#eff6ff', color: '#1d4ed8', display: 'inline-block' }}>
+                        <span className="template-badge template-badge--send">
                           {TEMPLATE_LABEL[e.template] || e.template}
-                        </div>
-                        <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>{e.sent_at ? timeAgo(e.sent_at) : '—'}</div>
+                        </span>
+                        <div className="activity-meta" style={{ marginTop: 2 }}>{e.sent_at ? timeAgo(e.sent_at) : '—'}</div>
                       </div>
                     </div>
                   ))
@@ -225,21 +285,19 @@ export default function DashboardPage() {
               </div>
 
               {/* Recent Opens */}
-              <div className="card" style={{ padding: '20px 24px' }}>
-                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 16, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Recent Opens
-                </div>
-                {(stats?.recentOpens || []).length === 0 ? (
-                  <p style={{ fontSize: 13, color: 'var(--muted)' }}>No opens tracked yet.</p>
+              <div className="card-section">
+                <div className="section-title">Recent Opens</div>
+                {(stats.recentOpens || []).length === 0 ? (
+                  <p className="empty-state">No opens tracked yet.</p>
                 ) : (
-                  (stats?.recentOpens || []).map((o: any) => (
-                    <div key={o.lead_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
-                      <div style={{ fontWeight: 600, color: 'var(--ink)' }}>{o.company_name}</div>
+                  (stats.recentOpens || []).map(o => (
+                    <div key={o.lead_id} className="activity-row">
+                      <div className="activity-name">{o.company_name}</div>
                       <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 6, background: '#fefce8', color: '#a16207', display: 'inline-block' }}>
-                          {TEMPLATE_LABEL[o.template] || o.template || 'Open'}
-                        </div>
-                        <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 2 }}>{o.opened_at ? timeAgo(o.opened_at) : '—'}</div>
+                        <span className="template-badge template-badge--open">
+                          {TEMPLATE_LABEL[o.template || ''] || 'Open'}
+                        </span>
+                        <div className="activity-meta" style={{ marginTop: 2 }}>{o.opened_at ? timeAgo(o.opened_at) : '—'}</div>
                       </div>
                     </div>
                   ))
@@ -247,43 +305,50 @@ export default function DashboardPage() {
               </div>
 
               {/* Recent Clicks */}
-              <div className="card" style={{ padding: '20px 24px' }}>
-                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 16, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                  Recent Clicks
-                </div>
-                {(stats?.recentClicks || []).length === 0 ? (
-                  <p style={{ fontSize: 13, color: 'var(--muted)' }}>No clicks tracked yet.</p>
+              <div className="card-section">
+                <div className="section-title">Recent Clicks</div>
+                {(stats.recentClicks || []).length === 0 ? (
+                  <p className="empty-state">No clicks tracked yet.</p>
                 ) : (
-                  (stats?.recentClicks || []).map((c: any) => (
-                    <div key={c.lead_id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--border)', fontSize: 13 }}>
+                  (stats.recentClicks || []).map(c => (
+                    <div key={c.lead_id} className="activity-row">
                       <div>
-                        <div style={{ fontWeight: 600, color: 'var(--ink)' }}>{c.company_name}</div>
-                        <div style={{ fontSize: 11, color: 'var(--muted)' }}>{c.url_hostname}</div>
+                        <div className="activity-name">{c.company_name}</div>
+                        <div className="activity-meta">{c.url_hostname}</div>
                       </div>
-                      <div style={{ fontSize: 11, color: 'var(--muted)' }}>{c.clicked_at ? timeAgo(c.clicked_at) : '—'}</div>
+                      <div className="activity-meta">{c.clicked_at ? timeAgo(c.clicked_at) : '—'}</div>
                     </div>
                   ))
                 )}
               </div>
             </div>
 
-            {/* Schedule info */}
-            <div style={{ marginTop: 20, padding: '14px 20px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 12, fontSize: 13, color: '#15803d' }}>
+            {/* Automation banner */}
+            <div className="automation-banner">
               <strong>Automation running:</strong> Lead gen daily at 6 AM PT · Auto-send daily at 7 AM PT · Up to 20 new leads + 50 emails per day
             </div>
           </>
         )}
-      </div>
+      </main>
     </div>
   );
 }
 
 function StatCard({ label, value, sub, color }: { label: string; value: string | number; sub: string; color: string }) {
   return (
-    <div className="card" style={{ padding: '20px 24px' }}>
-      <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 8 }}>{label}</div>
-      <div style={{ fontSize: 28, fontWeight: 700, color, letterSpacing: '-0.02em', marginBottom: 4 }}>{value}</div>
-      <div style={{ fontSize: 12, color: 'var(--muted)' }}>{sub}</div>
+    <div className="stat-card">
+      <div className="stat-label">{label}</div>
+      <div className="stat-value" style={{ color }}>{value}</div>
+      <div className="stat-sub">{sub}</div>
+    </div>
+  );
+}
+
+function TrafficStat({ value, label, color }: { value: number; label: string; color: string }) {
+  return (
+    <div>
+      <div className="traffic-value" style={{ color }}>{value}</div>
+      <div className="traffic-label">{label}</div>
     </div>
   );
 }

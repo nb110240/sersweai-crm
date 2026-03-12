@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import CrmNav from '../../../components/CrmNav';
 
 const STAGES = ['Discovery', 'Proposal', 'Closed Won', 'Closed Lost'] as const;
 type Stage = typeof STAGES[number];
@@ -96,20 +97,7 @@ export default function DealsPage() {
 
   return (
     <div className="app-shell">
-      <div className="topbar">
-        <div className="brand">
-          <div className="brand-mark" />
-          <div>
-            <div className="brand-title">SersweAI CRM</div>
-            <div className="brand-sub">Deal Pipeline</div>
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <a href="/crm" style={{ fontSize: 13, padding: '6px 12px', borderRadius: 10, border: '1px solid var(--border)', textDecoration: 'none', color: 'var(--ink)' }}>← Pipeline</a>
-          <a href="/crm/dashboard" style={{ fontSize: 13, padding: '6px 12px', borderRadius: 10, border: '1px solid var(--border)', textDecoration: 'none', color: 'var(--ink)' }}>Dashboard</a>
-          <a href="/crm/calendar" style={{ fontSize: 13, padding: '6px 12px', borderRadius: 10, border: '1px solid var(--border)', textDecoration: 'none', color: 'var(--ink)' }}>Calendar</a>
-        </div>
-      </div>
+      <CrmNav current="/crm/deals" subtitle="Deal Pipeline" />
 
       <div className="container">
         <div className="header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>

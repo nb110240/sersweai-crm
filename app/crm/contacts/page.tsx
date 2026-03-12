@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import CrmNav from '../../../components/CrmNav';
 
 type Contact = {
   id: string;
@@ -82,21 +83,7 @@ export default function ContactsPage() {
 
   return (
     <div className="app-shell">
-      <div className="topbar">
-        <div className="brand">
-          <div className="brand-mark" />
-          <div>
-            <div className="brand-title">SersweAI CRM</div>
-            <div className="brand-sub">Website contacts</div>
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <a href="/crm" style={{ fontSize: 13, padding: '6px 12px', borderRadius: 10, border: '1px solid var(--border)' }}>
-            &larr; Pipeline
-          </a>
-          <div className="badge">Website Contacts</div>
-        </div>
-      </div>
+      <CrmNav current="/crm/contacts" subtitle="Website Contacts" />
       <div className="container">
         <div className="header">
           <div>

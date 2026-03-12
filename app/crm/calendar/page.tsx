@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
+import CrmNav from '../../../components/CrmNav';
 
 type Lead = {
   id: string;
@@ -16,16 +17,15 @@ type Lead = {
 };
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
-  'Not Contacted':   { bg: '#f3f4f6', text: '#6b7280', dot: '#9ca3af' },
-  'Email 1 Sent':    { bg: '#eff6ff', text: '#1d4ed8', dot: '#3b82f6' },
-  'Email 2 Sent':    { bg: '#eef2ff', text: '#4338ca', dot: '#6366f1' },
-  'Email 3 Sent':    { bg: '#fff7ed', text: '#c2410c', dot: '#f97316' },
-  'Replied':         { bg: '#f0fdf4', text: '#15803d', dot: '#22c55e' },
-  'Not Fit':         { bg: '#fef2f2', text: '#b91c1c', dot: '#ef4444' },
-  'Do Not Contact':  { bg: '#f9fafb', text: '#374151', dot: '#4b5563' },
+  'Not Contacted':   { bg: '#f3f4f6', text: '#6b7280', dot: 'var(--status-gray)' },
+  'Email 1 Sent':    { bg: 'var(--info-bg)', text: 'var(--info-text)', dot: 'var(--status-blue)' },
+  'Email 2 Sent':    { bg: '#eef2ff', text: '#4338ca', dot: 'var(--status-indigo)' },
+  'Email 3 Sent':    { bg: '#fff7ed', text: '#c2410c', dot: 'var(--status-orange)' },
+  'Replied':         { bg: 'var(--success-bg)', text: 'var(--success-text)', dot: 'var(--status-green)' },
+  'Not Fit':         { bg: '#fef2f2', text: '#b91c1c', dot: 'var(--status-red)' },
+  'Do Not Contact':  { bg: '#f9fafb', text: '#374151', dot: 'var(--status-dark)' },
 };
 
-// What action is due on the follow-up date
 const NEXT_ACTION: Record<string, string> = {
   'Not Contacted':  'Send Email 1',
   'Email 1 Sent':   'Send Email 2',
@@ -38,7 +38,6 @@ function getStatusStyle(status: string | null) {
 }
 
 function toDateKey(dateStr: string): string {
-  // Normalize to YYYY-MM-DD regardless of timezone
   return dateStr.split('T')[0];
 }
 
@@ -121,7 +120,6 @@ export default function CalendarPage() {
     }
   }
 
-  // Group leads by date key
   const leadsByDate = useMemo(() => {
     const map: Record<string, Lead[]> = {};
     for (const lead of leads) {
@@ -156,7 +154,6 @@ export default function CalendarPage() {
   const daysInMonth = getDaysInMonth(viewYear, viewMonth);
   const firstDow = getFirstDayOfWeek(viewYear, viewMonth);
 
-  // Build calendar grid (6 rows max)
   const cells: (number | null)[] = [];
   for (let i = 0; i < firstDow; i++) cells.push(null);
   for (let d = 1; d <= daysInMonth; d++) cells.push(d);
@@ -173,15 +170,7 @@ export default function CalendarPage() {
   if (!authed) {
     return (
       <div className="app-shell">
-        <div className="topbar">
-          <div className="brand">
-            <div className="brand-mark" />
-            <div>
-              <div className="brand-title">SersweAI CRM</div>
-              <div className="brand-sub">Follow-up Calendar</div>
-            </div>
-          </div>
-        </div>
+        <CrmNav current="/crm/calendar" subtitle="Follow-up Calendar" />
         <div className="container login">
           <div className="card">
             <h1>Secure Workspace</h1>
@@ -208,26 +197,9 @@ export default function CalendarPage() {
 
   return (
     <div className="app-shell">
-      <div className="topbar">
-        <div className="brand">
-          <div className="brand-mark" />
-          <div>
-            <div className="brand-title">SersweAI CRM</div>
-            <div className="brand-sub">Follow-up Calendar</div>
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-          <a href="/crm" style={{ fontSize: 13, padding: '6px 12px', borderRadius: 10, border: '1px solid var(--border)' }}>
-            &larr; Pipeline
-          </a>
-          <a href="/crm/contacts" style={{ fontSize: 13, padding: '6px 12px', borderRadius: 10, border: '1px solid var(--border)' }}>
-            Contacts &rarr;
-          </a>
-          <div className="badge">Calendar</div>
-        </div>
-      </div>
+      <CrmNav current="/crm/calendar" subtitle="Follow-up Calendar" />
 
-      <div className="container">
+      <main className="container">
         <div className="header">
           <div>
             <h1>Follow-up Calendar</h1>
@@ -241,24 +213,18 @@ export default function CalendarPage() {
 
         {/* Today's Activity Bar */}
         {(activity.emailsByDate[todayKey] || activity.leadsImportedByDate[todayKey]) ? (
-          <div style={{
-            display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap',
-            padding: '12px 18px', marginBottom: 16, borderRadius: 12,
-            background: '#f8faff', border: '1px solid #dbeafe', fontSize: 13
-          }}>
-            <span style={{ fontWeight: 600, color: 'var(--ink)' }}>Today's Activity</span>
+          <div className="cal-activity-bar">
+            <span style={{ fontWeight: 600, color: 'var(--ink)' }}>Today&apos;s Activity</span>
             {activity.emailsByDate[todayKey] && (
-              <>
-                <span style={{ color: '#1d4ed8' }}>
-                  ✉ <strong>{activity.emailsByDate[todayKey].total}</strong> emails sent
-                  {activity.emailsByDate[todayKey].email1 > 0 && ` · E1: ${activity.emailsByDate[todayKey].email1}`}
-                  {activity.emailsByDate[todayKey].email2 > 0 && ` · E2: ${activity.emailsByDate[todayKey].email2}`}
-                  {activity.emailsByDate[todayKey].email3 > 0 && ` · E3: ${activity.emailsByDate[todayKey].email3}`}
-                </span>
-              </>
+              <span style={{ color: 'var(--info-text)' }}>
+                ✉ <strong>{activity.emailsByDate[todayKey].total}</strong> emails sent
+                {activity.emailsByDate[todayKey].email1 > 0 && ` · E1: ${activity.emailsByDate[todayKey].email1}`}
+                {activity.emailsByDate[todayKey].email2 > 0 && ` · E2: ${activity.emailsByDate[todayKey].email2}`}
+                {activity.emailsByDate[todayKey].email3 > 0 && ` · E3: ${activity.emailsByDate[todayKey].email3}`}
+              </span>
             )}
             {(activity.leadsImportedByDate[todayKey] || 0) > 0 && (
-              <span style={{ color: '#15803d' }}>
+              <span style={{ color: 'var(--success-text)' }}>
                 🎯 <strong>{activity.leadsImportedByDate[todayKey]}</strong> leads imported
               </span>
             )}
@@ -267,73 +233,30 @@ export default function CalendarPage() {
 
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           {/* Calendar Header */}
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '16px 20px', borderBottom: '1px solid var(--border)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <button
-                onClick={prevMonth}
-                style={{
-                  background: 'none', border: '1px solid var(--border)', borderRadius: 8,
-                  padding: '4px 10px', cursor: 'pointer', fontSize: 16, color: 'var(--ink)'
-                }}
-              >
-                ‹
-              </button>
-              <span style={{ fontSize: 18, fontWeight: 600, fontFamily: 'var(--font-display)', minWidth: 160, textAlign: 'center' }}>
-                {MONTHS[viewMonth]} {viewYear}
-              </span>
-              <button
-                onClick={nextMonth}
-                style={{
-                  background: 'none', border: '1px solid var(--border)', borderRadius: 8,
-                  padding: '4px 10px', cursor: 'pointer', fontSize: 16, color: 'var(--ink)'
-                }}
-              >
-                ›
-              </button>
+          <div className="cal-header">
+            <div className="cal-nav">
+              <button onClick={prevMonth} className="cal-nav-btn" aria-label="Previous month">‹</button>
+              <span className="cal-month-label">{MONTHS[viewMonth]} {viewYear}</span>
+              <button onClick={nextMonth} className="cal-nav-btn" aria-label="Next month">›</button>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              {fetching && <span style={{ fontSize: 12, color: 'var(--muted)' }}>Loading…</span>}
-              <button
-                onClick={goToday}
-                style={{
-                  background: 'var(--accent)', color: '#fff', border: 'none',
-                  borderRadius: 8, padding: '6px 14px', cursor: 'pointer', fontSize: 13
-                }}
-              >
-                Today
-              </button>
+            <div className="cal-nav">
+              {fetching && <span className="activity-meta">Loading…</span>}
+              <button onClick={goToday}>Today</button>
             </div>
           </div>
 
           {/* Day-of-week headers */}
-          <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)',
-            borderBottom: '1px solid var(--border)',
-            background: '#fafaf9'
-          }}>
+          <div className="cal-dow-grid">
             {DOW.map(d => (
-              <div key={d} style={{
-                padding: '8px 0', textAlign: 'center', fontSize: 11,
-                fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em'
-              }}>
-                {d}
-              </div>
+              <div key={d} className="cal-dow-cell">{d}</div>
             ))}
           </div>
 
           {/* Calendar Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+          <div className="cal-grid">
             {cells.map((day, idx) => {
               if (day === null) {
-                return (
-                  <div key={`empty-${idx}`} style={{
-                    minHeight: 90, borderRight: (idx + 1) % 7 !== 0 ? '1px solid var(--border)' : 'none',
-                    borderBottom: '1px solid var(--border)', background: '#fafaf9'
-                  }} />
-                );
+                return <div key={`empty-${idx}`} className="cal-cell cal-cell--empty" />;
               }
 
               const key = dayKey(day);
@@ -347,55 +270,25 @@ export default function CalendarPage() {
                 <div
                   key={day}
                   onClick={() => setSelectedDay(isSelected ? null : day)}
-                  style={{
-                    minHeight: 90,
-                    borderRight: (idx + 1) % 7 !== 0 ? '1px solid var(--border)' : 'none',
-                    borderBottom: '1px solid var(--border)',
-                    padding: '8px 6px',
-                    cursor: 'pointer',
-                    background: isSelected ? '#f0f9f8' : 'var(--card)',
-                    transition: 'background 0.1s',
-                    position: 'relative',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 3
-                  }}
+                  className={`cal-cell cal-cell--active${isSelected ? ' cal-cell--selected' : ''}`}
                 >
-                  <div style={{
-                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    width: 26, height: 26, borderRadius: '50%',
-                    background: isToday ? 'var(--accent)' : 'transparent',
-                    color: isToday ? '#fff' : isSelected ? 'var(--accent)' : 'var(--ink)',
-                    fontWeight: isToday || isSelected ? 700 : 400,
-                    fontSize: 13, marginBottom: 2
-                  }}>
+                  <div className={`cal-day-num${isToday ? ' cal-day-num--today' : isSelected ? ' cal-day-num--selected' : ''}`}>
                     {day}
                   </div>
 
                   {/* Activity badges */}
                   {(dayEmails || dayImports > 0) && (
-                    <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap', marginBottom: 2 }}>
+                    <div className="cal-badges">
                       {dayEmails && dayEmails.total > 0 && (
                         <span
+                          className="cal-badge cal-badge--email"
                           title={`Emails sent: E1=${dayEmails.email1} E2=${dayEmails.email2} E3=${dayEmails.email3}`}
-                          style={{
-                            fontSize: 9, padding: '1px 4px', borderRadius: 4,
-                            background: '#eff6ff', color: '#1d4ed8', fontWeight: 600,
-                            lineHeight: '14px', whiteSpace: 'nowrap'
-                          }}
                         >
                           ✉ {dayEmails.total}
                         </span>
                       )}
                       {dayImports > 0 && (
-                        <span
-                          title={`${dayImports} leads imported`}
-                          style={{
-                            fontSize: 9, padding: '1px 4px', borderRadius: 4,
-                            background: '#f0fdf4', color: '#15803d', fontWeight: 600,
-                            lineHeight: '14px', whiteSpace: 'nowrap'
-                          }}
-                        >
+                        <span className="cal-badge cal-badge--import" title={`${dayImports} leads imported`}>
                           + {dayImports}
                         </span>
                       )}
@@ -404,18 +297,10 @@ export default function CalendarPage() {
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                     {dayLeads.slice(0, 3).map(lead => {
-                      const style = getStatusStyle(lead.status);
+                      const s = getStatusStyle(lead.status);
                       return (
-                        <div key={lead.id} style={{
-                          fontSize: 10, padding: '2px 5px', borderRadius: 4,
-                          background: style.bg, color: style.text,
-                          whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
-                          display: 'flex', alignItems: 'center', gap: 3
-                        }}>
-                          <span style={{
-                            width: 5, height: 5, borderRadius: '50%',
-                            background: style.dot, flexShrink: 0, display: 'inline-block'
-                          }} />
+                        <div key={lead.id} className="cal-lead-chip" style={{ background: s.bg, color: s.text }}>
+                          <span className="cal-lead-dot" style={{ background: s.dot }} />
                           {NEXT_ACTION[lead.status || ''] ? `${NEXT_ACTION[lead.status!]} · ` : ''}{lead.company_name}
                         </div>
                       );
@@ -438,12 +323,9 @@ export default function CalendarPage() {
           const selEmails = activity.emailsByDate[selKey];
           const selImports = activity.leadsImportedByDate[selKey] || 0;
           return (
-          <div className="card" style={{ marginTop: 16 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-              <div style={{
-                fontSize: 13, fontWeight: 600, color: 'var(--muted)',
-                textTransform: 'uppercase', letterSpacing: '0.05em'
-              }}>
+          <div className="card cal-detail-panel">
+            <div className="cal-detail-header">
+              <div className="section-title" style={{ marginBottom: 0 }}>
                 {MONTHS[viewMonth]} {selectedDay}, {viewYear}
                 {selectedLeads.length === 0 && !selEmails && selImports === 0 && (
                   <span style={{ fontWeight: 400, textTransform: 'none', letterSpacing: 'normal', marginLeft: 8 }}>
@@ -452,17 +334,17 @@ export default function CalendarPage() {
                 )}
               </div>
               {(selEmails || selImports > 0) && (
-                <div style={{ display: 'flex', gap: 10, fontSize: 12 }}>
+                <div className="cal-detail-badges">
                   {selEmails && selEmails.total > 0 && (
-                    <span style={{ color: '#1d4ed8', background: '#eff6ff', padding: '3px 10px', borderRadius: 8, fontWeight: 500 }}>
+                    <span className="cal-detail-badge cal-detail-badge--email">
                       ✉ {selEmails.total} sent
-                      {selEmails.email1 > 0 && <span style={{ color: '#60a5fa' }}> · E1:{selEmails.email1}</span>}
-                      {selEmails.email2 > 0 && <span style={{ color: '#818cf8' }}> · E2:{selEmails.email2}</span>}
-                      {selEmails.email3 > 0 && <span style={{ color: '#fb923c' }}> · E3:{selEmails.email3}</span>}
+                      {selEmails.email1 > 0 && <span style={{ opacity: 0.7 }}> · E1:{selEmails.email1}</span>}
+                      {selEmails.email2 > 0 && <span style={{ opacity: 0.7 }}> · E2:{selEmails.email2}</span>}
+                      {selEmails.email3 > 0 && <span style={{ opacity: 0.7 }}> · E3:{selEmails.email3}</span>}
                     </span>
                   )}
                   {selImports > 0 && (
-                    <span style={{ color: '#15803d', background: '#f0fdf4', padding: '3px 10px', borderRadius: 8, fontWeight: 500 }}>
+                    <span className="cal-detail-badge cal-detail-badge--import">
                       🎯 {selImports} imported
                     </span>
                   )}
@@ -473,33 +355,24 @@ export default function CalendarPage() {
             {selectedLeads.length > 0 && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {selectedLeads.map(lead => {
-                  const style = getStatusStyle(lead.status);
+                  const s = getStatusStyle(lead.status);
                   return (
-                    <div key={lead.id} style={{
-                      display: 'flex', alignItems: 'center', gap: 12,
-                      padding: '10px 14px', borderRadius: 10,
-                      border: '1px solid var(--border)', background: '#fafaf9'
-                    }}>
-                      <span style={{
-                        width: 8, height: 8, borderRadius: '50%',
-                        background: style.dot, flexShrink: 0
-                      }} />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontWeight: 600, fontSize: 14 }}>{lead.company_name}</div>
+                    <div key={lead.id} className="cal-lead-card">
+                      <span className="cal-lead-card-dot" style={{ background: s.dot }} />
+                      <div className="cal-lead-card-info">
+                        <div className="cal-lead-card-name">{lead.company_name}</div>
                         {lead.category && (
-                          <div style={{ fontSize: 11, color: 'var(--muted)' }}>{lead.category}</div>
+                          <div className="activity-meta">{lead.category}</div>
                         )}
                       </div>
-                      <span style={{
-                        fontSize: 11, padding: '3px 8px', borderRadius: 6,
-                        background: style.bg, color: style.text, fontWeight: 500, whiteSpace: 'nowrap'
-                      }}>
+                      <span className="cal-lead-card-status" style={{ background: s.bg, color: s.text }}>
                         {NEXT_ACTION[lead.status || ''] || lead.status || 'Follow up'}
                       </span>
                       {lead.email ? (
                         <a
                           href={`mailto:${lead.email}`}
-                          style={{ fontSize: 12, color: 'var(--accent)', textDecoration: 'none', whiteSpace: 'nowrap' }}
+                          className="cal-lead-card-link"
+                          style={{ color: 'var(--accent)' }}
                           onClick={e => e.stopPropagation()}
                         >
                           ✉ {lead.email}
@@ -509,7 +382,8 @@ export default function CalendarPage() {
                           href={lead.website}
                           target="_blank"
                           rel="noopener noreferrer"
-                          style={{ fontSize: 12, color: 'var(--muted)', textDecoration: 'none' }}
+                          className="cal-lead-card-link"
+                          style={{ color: 'var(--muted)' }}
                           onClick={e => e.stopPropagation()}
                         >
                           ↗ website
@@ -517,10 +391,7 @@ export default function CalendarPage() {
                       ) : null}
                       <a
                         href={`/crm?search=${encodeURIComponent(lead.company_name)}`}
-                        style={{
-                          fontSize: 11, color: 'var(--muted)', textDecoration: 'none',
-                          padding: '3px 8px', border: '1px solid var(--border)', borderRadius: 6
-                        }}
+                        className="cal-lead-card-view"
                         onClick={e => e.stopPropagation()}
                       >
                         View →
@@ -535,24 +406,24 @@ export default function CalendarPage() {
         })()}
 
         {/* Legend */}
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 16, paddingBottom: 32, alignItems: 'center' }}>
+        <div className="cal-legend">
           {Object.entries(STATUS_COLORS).map(([status, style]) => (
-            <div key={status} style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--muted)' }}>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: style.dot, display: 'inline-block' }} />
+            <div key={status} className="cal-legend-item">
+              <span className="cal-legend-dot" style={{ background: style.dot }} />
               {status}
             </div>
           ))}
-          <div style={{ width: 1, height: 12, background: 'var(--border)', margin: '0 4px' }} />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--muted)' }}>
-            <span style={{ fontSize: 9, padding: '1px 4px', borderRadius: 4, background: '#eff6ff', color: '#1d4ed8', fontWeight: 600, lineHeight: '14px' }}>✉ 5</span>
+          <div className="cal-legend-divider" />
+          <div className="cal-legend-item">
+            <span className="cal-badge cal-badge--email">✉ 5</span>
             Emails sent
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 11, color: 'var(--muted)' }}>
-            <span style={{ fontSize: 9, padding: '1px 4px', borderRadius: 4, background: '#f0fdf4', color: '#15803d', fontWeight: 600, lineHeight: '14px' }}>+ 10</span>
+          <div className="cal-legend-item">
+            <span className="cal-badge cal-badge--import">+ 10</span>
             Leads imported
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
