@@ -1192,10 +1192,6 @@ section { position: relative; z-index: 2; }
   color: #fff;
 }
 
-.cal-day.weekend {
-  color: var(--text-4);
-}
-
 .cal-day.selected {
   background: var(--accent);
   color: #fff;
@@ -2476,7 +2472,7 @@ footer {
           <div class="cal-days" id="cal-days"></div>
           <div class="cal-footer" id="cal-footer">
             <span class="cal-footer-dot"></span>
-            <span class="cal-footer-text">Select a weekday to book a 30-minute consultation</span>
+            <span class="cal-footer-text">Select a day to book a 30-minute consultation</span>
           </div>
 
           <!-- Time slot picker (shown after selecting a day) -->
@@ -2779,11 +2775,16 @@ let selectedTime = null;
 const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
-const AVAILABLE_TIMES = [
-  '9:00 AM', '9:30 AM', '10:00 AM', '10:30 AM',
-  '11:00 AM', '11:30 AM', '1:00 PM', '1:30 PM',
-  '2:00 PM', '2:30 PM', '3:00 PM', '3:30 PM',
-  '4:00 PM', '4:30 PM'
+const WEEKDAY_TIMES = [
+  '4:00 PM', '4:30 PM', '5:00 PM', '5:30 PM',
+  '6:00 PM', '6:30 PM', '7:00 PM', '7:30 PM', '8:00 PM'
+];
+
+const WEEKEND_TIMES = [
+  '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM',
+  '1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM',
+  '3:00 PM', '3:30 PM', '4:00 PM', '4:30 PM',
+  '5:00 PM', '5:30 PM', '6:00 PM'
 ];
 
 function renderCalendar() {
@@ -2810,13 +2811,11 @@ function renderCalendar() {
     const dayOfWeek = date.getDay();
     const isPast = date < today;
     const isToday = date.getTime() === today.getTime();
-    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-    const isAvailable = !isPast && !isWeekend;
+    const isAvailable = !isPast;
 
     let cls = 'cal-day';
     if (isPast) cls += ' past';
     if (isToday) cls += ' today';
-    if (isWeekend && !isPast) cls += ' weekend';
     if (isAvailable) cls += ' available';
 
     const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
@@ -2855,9 +2854,13 @@ function showTimeSlots(dateStr) {
   document.getElementById('timeslot-date').textContent =
     `${dayNames[dateObj.getDay()]}, ${monthNames[m - 1]} ${d}`;
 
+  // Pick weekday vs weekend time slots
+  const isWeekend = dateObj.getDay() === 0 || dateObj.getDay() === 6;
+  const times = isWeekend ? WEEKEND_TIMES : WEEKDAY_TIMES;
+
   // Build time slot buttons
   let html = '';
-  AVAILABLE_TIMES.forEach(time => {
+  times.forEach(time => {
     html += `<button class="timeslot-btn" data-time="${time}">${time}</button>`;
   });
   grid.innerHTML = html;
